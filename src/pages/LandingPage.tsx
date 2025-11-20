@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Briefcase, Users, Building2, Clock, DollarSign } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
+import api from "@/lib/axios"
 
 interface Vacante {
   id: string
@@ -102,20 +103,12 @@ export default function LandingPage() {
 
   const fetchData = async () => {
     try {
-      const [vacantesRes, empresasRes, modalidadesRes, horariosRes, habilidadesRes] = await Promise.all([
-        fetch('http://localhost:3000/api/vacantes?estado=ABIERTA&limit=4'),
-        fetch('http://localhost:3000/api/empresas'),
-        fetch('http://localhost:3000/api/modalidades'),
-        fetch('http://localhost:3000/api/horarios'),
-        fetch('http://localhost:3000/api/habilidades')
-      ])
-
       const [vacantesData, empresasData, modalidadesData, horariosData, habilidadesData] = await Promise.all([
-        vacantesRes.json(),
-        empresasRes.json(),
-        modalidadesRes.json(),
-        horariosRes.json(),
-        habilidadesRes.json()
+        api.get('/vacantes?estado=ABIERTA&limit=4').then(res => res.data),
+        api.get('/empresas').then(res => res.data),
+        api.get('/modalidades').then(res => res.data),
+        api.get('/horarios').then(res => res.data),
+        api.get('/habilidades').then(res => res.data)
       ])
 
       setFeaturedJobs(vacantesData.data || [])

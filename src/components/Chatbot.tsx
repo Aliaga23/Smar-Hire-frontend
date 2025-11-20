@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { MessageCircle, X, Send, Trash2, Loader2, Bot, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,6 +8,7 @@ import { sendMessage, clearSession, type ChatHistory } from '@/services/chatbot'
 import { toast } from 'sonner'
 
 export function Chatbot() {
+  const location = useLocation()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<ChatHistory[]>([])
   const [inputMessage, setInputMessage] = useState('')
@@ -43,8 +45,19 @@ export function Chatbot() {
 
     setIsLoading(true)
     try {
-      const messageDto: { mensaje: string; sessionId?: string } = {
-        mensaje: userMessage
+      const messageDto: { 
+        mensaje: string
+        sessionId?: string
+        contexto?: {
+          pagina: string
+          seccion?: string
+          accion?: string
+        }
+      } = {
+        mensaje: userMessage,
+        contexto: {
+          pagina: location.pathname
+        }
       }
       
       // Solo incluir sessionId si existe

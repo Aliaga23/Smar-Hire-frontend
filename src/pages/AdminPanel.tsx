@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { Navigate } from "react-router-dom"
 import { useCurrentUser } from "../utils/auth"
 import { EmpresaNavbar } from "@/components/EmpresaNavbar"
+import api from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -112,17 +113,7 @@ export default function AdminPanel() {
       setRefreshing(true)
       
       // Llamada al endpoint del dashboard de empresa
-      const response = await fetch(`http://localhost:3000/api/empresas/${empresaId}/dashboard`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Error al cargar los datos')
-      }
-
-      const data = await response.json()
+      const { data } = await api.get(`/empresas/${empresaId}/dashboard`)
       
       // Transformar los datos del backend al formato del frontend
       const reclutadoresTransformados: Reclutador[] = data.reclutadores.map((rec: any) => ({
@@ -186,23 +177,10 @@ export default function AdminPanel() {
       setLoading(true)
       
       // Llamada al endpoint POST /auth/invitar/reclutador
-      const response = await fetch('http://localhost:3000/api/auth/invitar/reclutador', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          email: email,
-          empresaId: empresaId,
-        }),
+      await api.post('/auth/invitar/reclutador', {
+        email: email,
+        empresaId: empresaId,
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al enviar la invitación')
-      }
       
       toast.success(`Invitación enviada a ${email}`)
       setEmail("")

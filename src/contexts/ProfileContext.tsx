@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { getCandidatoProfile } from '@/services/candidato'
+import { getUserData } from '@/utils/auth'
 
 interface ProfileContextType {
   fotoPerfil: string | null
@@ -15,6 +16,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = async () => {
     try {
+      // Solo cargar perfil si el usuario es candidato
+      const userData = getUserData()
+      if (!userData?.candidato) {
+        return
+      }
+      
       const profile = await getCandidatoProfile()
       setFotoPerfil(profile.foto_perfil_url)
     } catch (error) {

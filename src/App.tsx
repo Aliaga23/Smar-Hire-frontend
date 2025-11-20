@@ -10,6 +10,8 @@ import LoginPage from "@/pages/LoginPage"
 import SignupPage from "@/pages/SignupPage"
 import RegisterEmpresaPage from "@/pages/RegisterEmpresaPage"
 import RegisterReclutador from "@/pages/RegisterReclutador"
+import ForgotPassword from "@/pages/ForgotPassword"
+import ResetPassword from "@/pages/ResetPassword"
 import DashboardCandidato from "@/pages/DashboardCandidato"
 import DashboardEmpresa from "@/pages/DashboardEmpresa"
 import DashboardReclutador from "@/pages/DashboardReclutador"
@@ -25,6 +27,7 @@ import MisRecomendaciones from "@/pages/MisRecomendaciones"
 import AboutPage from "@/pages/AboutPage"
 import HowItWorksPage from "@/pages/HowItWorksPage"
 import ContactPage from "@/pages/ContactPage"
+import CandidatosPage from "@/pages/CandidatosPage"
 import './App.css'
 
 function App() {
@@ -39,12 +42,15 @@ function App() {
             <Route path="/contact" element={<><LandingNavbar /><ContactPage /></>} />
             <Route path="/vacantes" element={<VacantesPublicas />} />
             <Route path="/login" element={<><LandingNavbar /><LoginPage /></>} />
+            <Route path="/forgot-password" element={<><LandingNavbar /><ForgotPassword /></>} />
+            <Route path="/reset-password" element={<><LandingNavbar /><ResetPassword /></>} />
             <Route path="/signup" element={<><LandingNavbar /><SignupPage /></>} />
             <Route path="/register-empresa" element={<><LandingNavbar /><RegisterEmpresaPage /></>} />
             <Route path="/register/reclutador" element={<RegisterReclutador />} />
             <Route path="/dashboard-candidato" element={<DashboardCandidato />} />
             <Route path="/dashboard-empresa" element={<DashboardEmpresa />} />
             <Route path="/dashboard-reclutador" element={<DashboardReclutador />} />
+            <Route path="/candidatos" element={<CandidatosPage />} />
             <Route path="/editar-perfil" element={<EditarPerfilCandidato />} />
             <Route path="/gestionar-habilidades" element={<GestionarHabilidades />} />
             <Route path="/vacantes-disponibles" element={<VacantesDisponibles />} />

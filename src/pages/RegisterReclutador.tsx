@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Mail, Lock, User, Phone, Calendar, Briefcase, Loader2, CheckCircle2 } from "lucide-react"
+import api from "@/lib/axios"
 
 export default function RegisterReclutador() {
   const [searchParams] = useSearchParams()
@@ -70,19 +71,7 @@ export default function RegisterReclutador() {
 
       const { confirmPassword, ...dataToSend } = formData
 
-      const response = await fetch(`http://localhost:3000/api/auth/register/reclutador?token=${token}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSend),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al registrarse')
-      }
+      const { data } = await api.post(`/auth/register/reclutador?token=${token}`, dataToSend)
 
       // Guardar token y datos del usuario
       localStorage.setItem('token', data.token)

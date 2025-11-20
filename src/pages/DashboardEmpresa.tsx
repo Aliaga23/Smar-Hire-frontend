@@ -12,7 +12,8 @@ import {
   FileText,
   Edit,
   MoreVertical,
-  Trash2
+  Trash2,
+  Download
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -24,15 +25,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect,  useCallback } from "react"
 import { getVacantes, deleteVacante, updateEstadoVacante, type Vacante } from "@/services/vacante"
 import { toast } from "sonner"
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import api from "@/lib/axios"
+import { Chart, registerables } from 'chart.js'
+import type { ChartConfiguration } from 'chart.js'
+
+// Registrar componentes de Chart.js
+Chart.register(...registerables)
 
 export default function DashboardEmpresa() {
   const { isAuthenticated, isReclutador, empresaId } = useCurrentUser()
   const navigate = useNavigate()
   const [vacantes, setVacantes] = useState<Vacante[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState({
+    vacantesActivas: 0,
+    candidatosTotal: 0,
+    postulacionesPorRevisar: 0
+  })
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -42,34 +56,42 @@ export default function DashboardEmpresa() {
     return <Navigate to="/dashboard-candidato" replace />
   }
 
-  // Cargar vacantes de la empresa
+  // Cargar vacantes de la empresa y estadísticas
   useEffect(() => {
-    const fetchVacantes = async () => {
+    const fetchData = async () => {
       if (!empresaId) return
       
       try {
         setIsLoading(true)
+        
+        // Cargar vacantes
         const data = await getVacantes({ empresaId })
-        // getVacantes puede devolver { data: [], pagination: {} } o un array directo
-        setVacantes(Array.isArray(data) ? data : data.data || [])
+        const vacantesData = Array.isArray(data) ? data : data.data || []
+        setVacantes(vacantesData)
+        
+        // Cargar postulaciones para calcular "Por Revisar"
+        const { data: response } = await api.get('/postulaciones/empresa/candidatos?limit=9999')
+        const postulaciones = response.data || []
+        
+        // Calcular estadísticas
+        const porRevisar = postulaciones.filter((p: any) => p.puntuacion_compatibilidad === null).length
+        
+        setStats({
+          vacantesActivas: vacantesData.filter((v: any) => v.estado === 'ABIERTA').length,
+          candidatosTotal: postulaciones.length,
+          postulacionesPorRevisar: porRevisar
+        })
       } catch (error) {
-        console.error('Error al cargar vacantes:', error)
-        toast.error('Error al cargar las vacantes')
+        console.error('Error al cargar datos:', error)
+        toast.error('Error al cargar los datos')
         setVacantes([])
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchVacantes()
+    fetchData()
   }, [empresaId])
-
-  // Calcular estadísticas
-  const stats = useMemo(() => ({
-    vacantesActivas: vacantes.filter(v => v.estado === 'ABIERTA').length,
-    candidatosTotal: vacantes.reduce((acc, v) => acc + (v._count?.postulaciones || 0), 0),
-    postulacionesPendientes: vacantes.reduce((acc, v) => acc + (v._count?.postulaciones || 0), 0)
-  }), [vacantes])
 
   // Formatear fecha
   const formatearFecha = useCallback((fecha: string) => {
@@ -131,6 +153,231 @@ export default function DashboardEmpresa() {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al cambiar el estado')
+    }
+  }
+
+  // Generar reporte PDF de postulaciones
+  const handleGenerarReporte = async () => {
+    if (!empresaId) {
+      toast.error('No se pudo identificar la empresa')
+      return
+    }
+
+    try {
+      toast.info('Generando reporte...')
+      
+      // Obtener todas las postulaciones de la empresa sin límite
+      const { data: response } = await api.get('/postulaciones/empresa/candidatos?limit=9999')
+      const postulaciones = response.data || []
+      
+      if (!postulaciones || postulaciones.length === 0) {
+        toast.warning('No hay postulaciones para generar el reporte')
+        return
+      }
+
+      // Crear el PDF en formato horizontal para más espacio
+      const doc = new jsPDF('landscape')
+      const pageWidth = doc.internal.pageSize.width
+      const pageHeight = doc.internal.pageSize.height
+      
+      const fechaActual = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+
+    
+      // Título del documento
+      doc.setFontSize(24)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Reporte de Postulaciones', pageWidth / 2, 20, { align: 'center' })
+      
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Fecha de generación: ${fechaActual}`, pageWidth / 2, 30, { align: 'center' })
+
+      const postulacionesRevisadas = postulaciones.filter((p: any) => p.puntuacion_compatibilidad != null)
+      
+      // Estadísticas de compatibilidad (multiplicar por 100)
+      const promedioCompatibilidad = postulacionesRevisadas.length > 0
+        ? postulacionesRevisadas.reduce((sum: number, p: any) => sum + ((p.puntuacion_compatibilidad || 0) * 100), 0) / postulacionesRevisadas.length
+        : 0
+
+      const compatibilidadAlta = postulaciones.filter((p: any) => ((p.puntuacion_compatibilidad || 0) * 100) >= 70).length
+      const compatibilidadMedia = postulaciones.filter((p: any) => ((p.puntuacion_compatibilidad || 0) * 100) >= 40 && ((p.puntuacion_compatibilidad || 0) * 100) < 70).length
+      const compatibilidadBaja = postulaciones.filter((p: any) => ((p.puntuacion_compatibilidad || 0) * 100) < 40 && p.puntuacion_compatibilidad != null).length
+
+      // Resumen de estadísticas
+      let currentY = 45
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Resumen Ejecutivo', 15, currentY)
+      
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      currentY += 10
+      doc.text(`Total de postulaciones: ${postulaciones.length}`, 15, currentY)
+      currentY += 8
+      doc.text(`Postulaciones revisadas (con compatibilidad): ${postulacionesRevisadas.length}`, 15, currentY)
+
+      // Sección de compatibilidad
+      currentY += 15
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Análisis de Compatibilidad', 15, currentY)
+      
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      currentY += 10
+      
+      if (postulacionesRevisadas.length > 0) {
+        doc.text(`Promedio de compatibilidad: ${promedioCompatibilidad.toFixed(1)}%`, 15, currentY)
+        currentY += 8
+        doc.text(`Alta compatibilidad (≥70%): ${compatibilidadAlta} candidatos`, 15, currentY)
+        currentY += 8
+        doc.text(`Compatibilidad media (40-69%): ${compatibilidadMedia} candidatos`, 15, currentY)
+        currentY += 8
+        doc.text(`Baja compatibilidad (<40%): ${compatibilidadBaja} candidatos`, 15, currentY)
+      } else {
+        doc.text('No hay postulaciones revisadas aún', 15, currentY)
+      }
+
+      if (postulacionesRevisadas.length > 0) {
+        const chartCanvas = document.createElement('canvas')
+        chartCanvas.width = 400
+        chartCanvas.height = 400
+        const ctx = chartCanvas.getContext('2d')
+        
+        if (ctx) {
+          const chartConfig: ChartConfiguration = {
+            type: 'doughnut',
+            data: {
+              labels: ['Alta (≥70%)', 'Media (40-69%)', 'Baja (<40%)'],
+              datasets: [{
+                data: [compatibilidadAlta, compatibilidadMedia, compatibilidadBaja],
+                backgroundColor: [
+                  'rgba(34, 197, 94, 0.8)',
+                  'rgba(234, 179, 8, 0.8)',
+                  'rgba(239, 68, 68, 0.8)'
+                ],
+                borderColor: [
+                  'rgba(34, 197, 94, 1)',
+                  'rgba(234, 179, 8, 1)',
+                  'rgba(239, 68, 68, 1)'
+                ],
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    font: {
+                      size: 14
+                    }
+                  }
+                },
+                title: {
+                  display: true,
+                  text: 'Distribución de Compatibilidad',
+                  font: {
+                    size: 16,
+                    weight: 'bold'
+                  }
+                }
+              }
+            }
+          }
+
+          const chart = new Chart(ctx, chartConfig)
+          
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          const chartImage = chartCanvas.toDataURL('image/png')
+          doc.addImage(chartImage, 'PNG', pageWidth - 95, 45, 80, 80)
+          
+          chart.destroy()
+        }
+      }
+
+      doc.addPage()
+
+      const tableData = postulaciones.map((post: any) => {
+        const fechaPostulacion = post.creado_en 
+          ? new Date(post.creado_en).toLocaleDateString('es-ES', { 
+              day: '2-digit', 
+              month: '2-digit', 
+              year: 'numeric' 
+            })
+          : 'N/A'
+
+        return [
+          `${post.candidato?.usuario?.name || ''} ${post.candidato?.usuario?.lastname || ''}`.trim() || 'N/A',
+          post.vacante?.titulo || 'N/A',
+          post.puntuacion_compatibilidad != null ? `${(post.puntuacion_compatibilidad * 100).toFixed(1)}%` : 'Sin revisar',
+          fechaPostulacion,
+          post.candidato?.usuario?.correo || 'N/A',
+          post.candidato?.usuario?.telefono || 'N/A'
+        ]
+      })
+
+      // Título de la tabla
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Detalle de Postulaciones', 15, 15)
+
+      // Generar tabla con mejor diseño
+      autoTable(doc, {
+        startY: 25,
+        head: [['Candidato', 'Vacante', 'Compatibilidad', 'Fecha', 'Email', 'Teléfono']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [79, 70, 229],
+          textColor: 255,
+          fontStyle: 'bold',
+          fontSize: 9,
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 8,
+          cellPadding: 4,
+          overflow: 'linebreak'
+        },
+        columnStyles: {
+          0: { cellWidth: 50, halign: 'left' },
+          1: { cellWidth: 60, halign: 'left' },
+          2: { cellWidth: 30, halign: 'center', fontStyle: 'bold' },
+          3: { cellWidth: 30, halign: 'center' },
+          4: { cellWidth: 55, halign: 'left', fontSize: 7 },
+          5: { cellWidth: 30, halign: 'center' }
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        didDrawPage: function(data) {
+          // Footer con número de página
+          doc.setFontSize(8)
+          doc.setTextColor(128, 128, 128)
+          doc.text(
+            `Página ${data.pageNumber} | Reporte generado el ${fechaActual}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            { align: 'center' }
+          )
+        }
+      })
+
+      // Descargar el PDF
+      const filename = `reporte-postulaciones-${new Date().toISOString().split('T')[0]}.pdf`
+      doc.save(filename)
+      
+      toast.success('Reporte generado exitosamente')
+    } catch (error) {
+      console.error('Error al generar reporte:', error)
+      toast.error('Error al generar el reporte')
     }
   }
 
@@ -210,7 +457,7 @@ export default function DashboardEmpresa() {
               {isLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold">{stats.postulacionesPendientes}</div>
+                <div className="text-2xl font-bold">{stats.postulacionesPorRevisar}</div>
               )}
             </CardContent>
           </Card>
@@ -360,12 +607,12 @@ export default function DashboardEmpresa() {
                   <Plus className="h-4 w-4" />
                   Nueva Vacante
                 </Button>
-                <Button className="w-full justify-start gap-2" variant="outline">
+                <Button className="w-full justify-start gap-2" variant="outline" onClick={() => navigate('/candidatos')}>
                   <Users className="h-4 w-4" />
                   Ver Candidatos
                 </Button>
-                <Button className="w-full justify-start gap-2" variant="outline">
-                  <FileText className="h-4 w-4" />
+                <Button className="w-full justify-start gap-2" variant="outline" onClick={handleGenerarReporte}>
+                  <Download className="h-4 w-4" />
                   Generar Reporte
                 </Button>
               </CardContent>

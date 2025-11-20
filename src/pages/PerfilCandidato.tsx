@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from "react"
 import { useParams, Navigate, useNavigate } from "react-router-dom"
 import { useCurrentUser } from "../utils/auth"
-import { getPostulacion, type Postulacion } from "@/services/postulacion"
 import { toast } from "sonner"
+import api from "@/lib/axios"
 import { EmpresaNavbar } from "@/components/EmpresaNavbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,16 +20,59 @@ import {
   Languages,
   GraduationCap,
   Briefcase,
-  Calendar,
-  DollarSign,
-  Building
+  Calendar
 } from "lucide-react"
+
+interface CandidatoPublico {
+  id: string
+  titulo: string
+  bio: string
+  ubicacion: string
+  foto_perfil_url: string | null
+  usuario: {
+    name: string
+    lastname: string
+    correo: string
+    telefono: string
+  }
+  habilidadesCandidato: Array<{
+    nivel: number
+    habilidad: {
+      id: string
+      nombre: string
+    }
+  }>
+  lenguajesCandidato: Array<{
+    nivel: number
+    lenguaje: {
+      id: string
+      nombre: string
+    }
+  }>
+  experienciasCandidato: Array<{
+    id: string
+    titulo: string
+    empresa: string
+    ubicacion: string
+    fecha_comienzo: string
+    fecha_final: string | null
+    descripcion: string
+  }>
+  educacionesCandidato: Array<{
+    id: string
+    institucion: string
+    titulo: string
+    campo_estudio: string
+    fecha_inicio: string
+    fecha_fin: string | null
+  }>
+}
 
 export default function PerfilCandidato() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { isAuthenticated, isReclutador } = useCurrentUser()
-  const [postulacion, setPostulacion] = useState<Postulacion | null>(null)
+  const [candidato, setCandidato] = useState<CandidatoPublico | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   if (!isAuthenticated) {
@@ -46,8 +89,8 @@ export default function PerfilCandidato() {
 
       try {
         setIsLoading(true)
-        const data = await getPostulacion(id)
-        setPostulacion(data)
+        const { data } = await api.get(`/candidatos/${id}`)
+        setCandidato(data)
       } catch (error) {
         console.error('Error al cargar perfil:', error)
         toast.error('Error al cargar el perfil del candidato')
@@ -69,14 +112,12 @@ export default function PerfilCandidato() {
   }, [])
 
   const obtenerIniciales = useCallback(() => {
-    const { name, lastname } = postulacion?.candidato?.usuario || {}
+    const { name, lastname } = candidato?.usuario || {}
     const inicialNombre = name?.[0]?.toUpperCase() || ''
     const inicialApellido = lastname?.[0]?.toUpperCase() || ''
     return `${inicialNombre}${inicialApellido}` || '??'
-  }, [postulacion])
+  }, [candidato])
 
-  const candidato = useMemo(() => postulacion?.candidato, [postulacion])
-  const vacante = useMemo(() => postulacion?.vacante, [postulacion])
   const usuario = useMemo(() => candidato?.usuario, [candidato])
 
   return (
@@ -134,11 +175,6 @@ export default function PerfilCandidato() {
                           {candidato?.titulo || 'Sin título profesional'}
                         </p>
                       </div>
-                      {postulacion?.puntuacion_compatibilidad && (
-                        <Badge variant="outline" className="text-base sm:text-lg px-3 py-1 self-start">
-                          {Math.round(postulacion.puntuacion_compatibilidad * 100)}% match
-                        </Badge>
-                      )}
                     </div>
 
                     {candidato?.bio && (
@@ -165,23 +201,6 @@ export default function PerfilCandidato() {
                         </div>
                       )}
                     </div>
-
-                    {/* Vacante aplicada - inline */}
-                    {vacante && (
-                      <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Building className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{vacante.titulo}</span>
-                          <span className="text-muted-foreground">en {vacante.empresa?.name}</span>
-                        </div>
-                        {vacante.salario_minimo && vacante.salario_maximo && (
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <DollarSign className="h-3.5 w-3.5" />
-                            <span>${vacante.salario_minimo.toLocaleString()} - ${vacante.salario_maximo.toLocaleString()}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </>
                 )}
               </div>
@@ -210,16 +229,16 @@ export default function PerfilCandidato() {
                     </div>
                   ))}
                 </div>
-              ) : candidato?.experiencias && candidato.experiencias.length > 0 ? (
+              ) : candidato?.experienciasCandidato && candidato.experienciasCandidato.length > 0 ? (
                 <div className="space-y-3">
-                  {candidato.experiencias.map((exp: any, idx: number) => (
+                  {candidato.experienciasCandidato.map((exp, idx: number) => (
                     <div key={idx} className="border-l-2 border-primary pl-3 py-1">
                       <h4 className="font-semibold text-sm">{exp.titulo}</h4>
                       <p className="text-sm text-muted-foreground">{exp.empresa}</p>
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{formatearFecha(exp.fecha_comienzo)} - {formatearFecha(exp.fecha_final)}</span>
+                          <span>{formatearFecha(exp.fecha_comienzo)} - {formatearFecha(exp.fecha_final || undefined)}</span>
                         </div>
                         {exp.ubicacion && (
                           <>
@@ -268,24 +287,23 @@ export default function PerfilCandidato() {
                       </div>
                     ))}
                   </div>
-                ) : candidato?.educaciones && candidato.educaciones.length > 0 ? (
+                ) : candidato?.educacionesCandidato && candidato.educacionesCandidato.length > 0 ? (
                   <div className="space-y-3">
-                    {candidato.educaciones.map((edu: any, idx: number) => (
+                    {candidato.educacionesCandidato.map((edu, idx: number) => (
                       <div key={idx} className="border-l-2 border-primary pl-3 py-1">
                         <h4 className="font-semibold text-sm">{edu.titulo}</h4>
                         <p className="text-sm text-muted-foreground">{edu.institucion}</p>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            <span>{formatearFecha(edu.fecha_comienzo)} - {formatearFecha(edu.fecha_final)}</span>
+                            <span>{formatearFecha(edu.fecha_inicio)} - {formatearFecha(edu.fecha_fin || undefined)}</span>
                           </div>
-                          <Badge variant="outline" className="text-xs py-0 h-5">
-                            {edu.estado}
-                          </Badge>
+                          {edu.campo_estudio && (
+                            <Badge variant="outline" className="text-xs py-0 h-5">
+                              {edu.campo_estudio}
+                            </Badge>
+                          )}
                         </div>
-                        {edu.descripcion && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{edu.descripcion}</p>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -327,9 +345,7 @@ export default function PerfilCandidato() {
                             <div key={idx} className="flex items-center justify-between p-2 border rounded-lg">
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm">{hab.habilidad.nombre}</p>
-                                {hab.habilidad.categoria && (
-                                  <p className="text-xs text-muted-foreground">{hab.habilidad.categoria.nombre}</p>
-                                )}
+
                               </div>
                               <Badge variant="secondary" className="text-xs ml-2">Nivel {hab.nivel}</Badge>
                             </div>

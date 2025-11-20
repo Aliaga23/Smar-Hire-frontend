@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Briefcase, Building2, Clock, DollarSign, Users, Filter, X } from "lucide-react"
 import { Link, useSearchParams } from "react-router-dom"
+import api from "@/lib/axios"
 
 interface Vacante {
   id: string
@@ -108,16 +109,10 @@ export default function VacantesPublicas() {
 
   const fetchCatalogos = async () => {
     try {
-      const [modalidadesRes, horariosRes, habilidadesRes] = await Promise.all([
-        fetch('http://localhost:3000/api/modalidades'),
-        fetch('http://localhost:3000/api/horarios'),
-        fetch('http://localhost:3000/api/habilidades')
-      ])
-
       const [modalidadesData, horariosData, habilidadesData] = await Promise.all([
-        modalidadesRes.json(),
-        horariosRes.json(),
-        habilidadesRes.json()
+        api.get('/modalidades').then(res => res.data),
+        api.get('/horarios').then(res => res.data),
+        api.get('/habilidades').then(res => res.data)
       ])
 
       setModalidades(modalidadesData)
@@ -157,8 +152,7 @@ export default function VacantesPublicas() {
       if (salarioMin) params.append('salarioMin', salarioMin)
       if (salarioMax) params.append('salarioMax', salarioMax)
 
-      const response = await fetch(`http://localhost:3000/api/vacantes?${params.toString()}`)
-      const data = await response.json()
+      const { data } = await api.get(`/vacantes?${params.toString()}`)
 
       setVacantes(data.data || [])
       setTotal(data.pagination?.total || 0)
@@ -445,7 +439,7 @@ export default function VacantesPublicas() {
                       </div>
 
                       <Button className="w-full mt-4" asChild>
-                        <Link to={`/vacantes/${vacante.id}`}>Ver detalles</Link>
+                        <Link to="/signup">Ver detalles</Link>
                       </Button>
                     </CardContent>
                   </Card>

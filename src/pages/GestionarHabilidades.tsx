@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CandidatoNavbar } from "../components/CandidatoNavbar";
+import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -93,23 +94,11 @@ export default function GestionarHabilidades() {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      const [profileRes, habilidadesRes, lenguajesRes] = await Promise.all([
-        fetch("http://localhost:3000/api/candidatos/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("http://localhost:3000/api/habilidades", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("http://localhost:3000/api/lenguajes", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [profile, habilidadesDB, lenguajesDB] = await Promise.all([
+        api.get('/candidatos/profile').then(res => res.data),
+        api.get('/habilidades').then(res => res.data),
+        api.get('/lenguajes').then(res => res.data),
       ]);
-
-      const profile = await profileRes.json();
-      const habilidadesDB = await habilidadesRes.json();
-      const lenguajesDB = await lenguajesRes.json();
 
       setHabilidades(profile.habilidadesCandidato || []);
       setLenguajes(profile.lenguajesCandidato || []);
@@ -126,20 +115,10 @@ export default function GestionarHabilidades() {
     if (!habilidadSeleccionada) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3000/api/candidatos/profile/habilidades", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          habilidadId: habilidadSeleccionada,
-          nivel: nivelHabilidad,
-        }),
+      await api.post('/candidatos/profile/habilidades', {
+        habilidadId: habilidadSeleccionada,
+        nivel: nivelHabilidad,
       });
-
-      if (!response.ok) throw new Error("Error al agregar habilidad");
 
       toast.success("¡Habilidad agregada!", {
         description: "La habilidad se agregó correctamente",
@@ -156,20 +135,10 @@ export default function GestionarHabilidades() {
 
   const handleActualizarHabilidad = async (habilidadId: string) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3000/api/candidatos/profile/habilidades/${habilidadId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ nivel: nivelEdit }),
-        }
+      await api.put(
+        `/candidatos/profile/habilidades/${habilidadId}`,
+        { nivel: nivelEdit }
       );
-
-      if (!response.ok) throw new Error("Error al actualizar habilidad");
 
       toast.success("¡Habilidad actualizada!");
 
@@ -184,16 +153,7 @@ export default function GestionarHabilidades() {
     if (!confirm("¿Seguro que deseas eliminar esta habilidad?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3000/api/candidatos/profile/habilidades/${habilidadId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("Error al eliminar habilidad");
+      await api.delete(`/candidatos/profile/habilidades/${habilidadId}`);
 
       toast.success("Habilidad eliminada");
 
@@ -207,20 +167,10 @@ export default function GestionarHabilidades() {
     if (!lenguajeSeleccionado) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3000/api/candidatos/profile/lenguajes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          lenguajeId: lenguajeSeleccionado,
-          nivel: nivelLenguaje,
-        }),
+      await api.post('/candidatos/profile/lenguajes', {
+        lenguajeId: lenguajeSeleccionado,
+        nivel: nivelLenguaje,
       });
-
-      if (!response.ok) throw new Error("Error al agregar lenguaje");
 
       toast.success("¡Lenguaje agregado!", {
         description: "El lenguaje se agregó correctamente",
@@ -237,20 +187,10 @@ export default function GestionarHabilidades() {
 
   const handleActualizarLenguaje = async (lenguajeId: string) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3000/api/candidatos/profile/lenguajes/${lenguajeId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ nivel: nivelEdit }),
-        }
+      await api.put(
+        `/candidatos/profile/lenguajes/${lenguajeId}`,
+        { nivel: nivelEdit }
       );
-
-      if (!response.ok) throw new Error("Error al actualizar lenguaje");
 
       toast.success("¡Lenguaje actualizado!");
 
@@ -265,16 +205,7 @@ export default function GestionarHabilidades() {
     if (!confirm("¿Seguro que deseas eliminar este lenguaje?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3000/api/candidatos/profile/lenguajes/${lenguajeId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("Error al eliminar lenguaje");
+      await api.delete(`/candidatos/profile/lenguajes/${lenguajeId}`);
 
       toast.success("Lenguaje eliminado");
 

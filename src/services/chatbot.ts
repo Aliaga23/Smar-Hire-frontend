@@ -3,6 +3,11 @@ import api from '@/lib/axios'
 export interface ChatMessageDto {
   mensaje: string
   sessionId?: string
+  contexto?: {
+    pagina: string
+    seccion?: string
+    accion?: string
+  }
 }
 
 export interface ChatResponse {
@@ -20,6 +25,9 @@ export const sendMessage = async (messageDto: ChatMessageDto): Promise<ChatRespo
   const body: any = { mensaje: messageDto.mensaje }
   if (messageDto.sessionId) {
     body.sessionId = messageDto.sessionId
+  }
+  if (messageDto.contexto) {
+    body.contexto = messageDto.contexto
   }
   const response = await api.post('/chatbot/chat', body)
   return response.data

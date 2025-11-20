@@ -43,3 +43,15 @@ export const getProfile = async () => {
   const response = await api.get('/auth/profile')
   return response.data
 }
+
+// Forgot password - solicitar recuperación
+export const forgotPassword = async (correo: string) => {
+  const response = await api.post('/auth/forgot-password', { correo })
+  return response.data
+}
+
+// Reset password - restablecer con token
+export const resetPassword = async (token: string, nuevaPassword: string) => {
+  const response = await api.post('/auth/reset-password', { token, nuevaPassword })
+  return response.data
+}
