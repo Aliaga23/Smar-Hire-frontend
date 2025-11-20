@@ -162,11 +162,11 @@ export default function LandingPage() {
       )
       
       if (habilidadEncontrada) {
-        // Es una habilidad, pasar el ID de la habilidad
+        // Es una habilidad, usar filtro de habilidad
         params.append('habilidadId', habilidadEncontrada.id)
       } else {
-        // No es habilidad, buscar en título/descripción
-        params.append('search', searchTerm)
+        // No es habilidad, buscar en título
+        params.append('titulo', searchTerm)
       }
     }
     

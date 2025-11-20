@@ -147,8 +147,8 @@ export default function VacantesPublicas() {
           // Es una habilidad, usar filtro de habilidad
           params.append('habilidadId', habilidadEncontrada.id)
         } else {
-          // No es habilidad, buscar en título/descripción
-          params.append('search', searchTerm)
+          // No es habilidad, buscar en título
+          params.append('titulo', searchTerm)
         }
       }
       
