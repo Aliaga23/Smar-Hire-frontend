@@ -1,4 +1,4 @@
-import { User, Bell, Search, LogOut, Settings, Briefcase, Award, FileText } from "lucide-react"
+import { User, LogOut, Briefcase } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
@@ -51,29 +51,12 @@ export function CandidatoNavbar() {
                 Dashboard
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/vacantes">
-                <Search className="h-4 w-4 mr-2" />
-                Buscar Empleos
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard-candidato">
-                <FileText className="h-4 w-4 mr-2" />
-                Mis Postulaciones
-              </Link>
-            </Button>
           </nav>
         </div>
 
         {/* Acciones de usuario */}
         <div className="flex items-center gap-2">
           <ModeToggle />
-          
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-600" />
-          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -101,14 +84,6 @@ export function CandidatoNavbar() {
               <DropdownMenuItem onClick={() => navigate('/dashboard-candidato')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Mi Perfil</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/dashboard-candidato')}>
-                <Award className="mr-2 h-4 w-4" />
-                <span>Mis Habilidades</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Configuración</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600">

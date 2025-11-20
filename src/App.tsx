@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { LandingNavbar } from "@/components/LandingNavbar"
 import { Toaster } from "@/components/ui/sonner"
 import { ProfileProvider } from "@/contexts/ProfileContext"
+import { Chatbot } from "@/components/Chatbot"
 import LandingPage from "@/pages/LandingPage"
 import VacantesPublicas from "@/pages/VacantesPublicas"
 import LoginPage from "@/pages/LoginPage"
@@ -49,6 +50,7 @@ function App() {
             <Route path="/vacante/crear" element={<CrearVacante />} />
             <Route path="/vacante/editar/:id" element={<CrearVacante />} />
           </Routes>
+          <Chatbot />
           <Toaster />
         </BrowserRouter>
       </ProfileProvider>

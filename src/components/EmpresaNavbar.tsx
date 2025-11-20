@@ -1,4 +1,4 @@
-import { Building2, Bell, Search, User, LogOut, Settings, Users, Briefcase } from "lucide-react"
+import { Building2, Search, User, LogOut, Settings, Users, Briefcase } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -79,14 +79,6 @@ export function EmpresaNavbar() {
               className="pl-8 h-9"
             />
           </div>
-
-          {/* Notificaciones */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-              3
-            </Badge>
-          </Button>
 
           {/* Theme toggle */}
           <ModeToggle />
