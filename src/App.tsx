@@ -11,7 +11,7 @@ import RegisterReclutador from "@/pages/RegisterReclutador"
 import DashboardCandidato from "@/pages/DashboardCandidato"
 import DashboardEmpresa from "@/pages/DashboardEmpresa"
 import DashboardReclutador from "@/pages/DashboardReclutador"
-import VacanteDetalle from "@/pages/VacanteDetalle"
+import VacanteDetalleRouter from "@/pages/VacanteDetalleRouter"
 import PerfilCandidato from "@/pages/PerfilCandidato"
 import PerfilReclutador from "@/pages/PerfilReclutador"
 import CrearVacante from "@/pages/CrearVacante"
@@ -40,7 +40,7 @@ function App() {
           <Route path="/gestionar-habilidades" element={<GestionarHabilidades />} />
           <Route path="/vacantes-disponibles" element={<VacantesDisponibles />} />
           <Route path="/mis-recomendaciones" element={<MisRecomendaciones />} />
-          <Route path="/vacante/:id" element={<VacanteDetalle />} />
+          <Route path="/vacante/:id" element={<VacanteDetalleRouter />} />
           <Route path="/perfil-candidato/:id" element={<PerfilCandidato />} />
           <Route path="/perfil" element={<PerfilReclutador />} />
           <Route path="/admin" element={<AdminPanel />} />

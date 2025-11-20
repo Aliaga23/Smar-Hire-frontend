@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Briefcase, MapPin, DollarSign, Clock, Building2, Search, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Briefcase, MapPin, DollarSign, Clock, Building2, Search, ArrowLeft, Loader2, CheckCircle2, Filter } from "lucide-react"
 import { getVacantes, type Vacante } from "@/services/vacante"
 import { createPostulacion, getMisPostulaciones, type Postulacion } from "@/services/postulacion"
 import { toast } from "sonner"
@@ -17,6 +18,9 @@ export default function VacantesDisponibles() {
   const [loading, setLoading] = useState(true)
   const [postulando, setPostulando] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState("")
+  const [filtroModalidad, setFiltroModalidad] = useState<string>("all")
+  const [filtroHorario, setFiltroHorario] = useState<string>("all")
+  const [mostrarFiltros, setMostrarFiltros] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -62,10 +66,24 @@ export default function VacantesDisponibles() {
     return misPostulaciones.some(p => p.vacanteId === vacanteId)
   }
 
-  const vacantesFiltradas = vacantes.filter(v => 
-    v.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
-    v.empresa?.name.toLowerCase().includes(busqueda.toLowerCase())
-  )
+  const vacantesFiltradas = vacantes.filter(v => {
+    const matchBusqueda = v.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+      v.empresa?.name.toLowerCase().includes(busqueda.toLowerCase())
+    
+    const matchModalidad = filtroModalidad === "all" || v.modalidad?.id === filtroModalidad
+    const matchHorario = filtroHorario === "all" || v.horario?.id === filtroHorario
+    
+    return matchBusqueda && matchModalidad && matchHorario
+  })
+
+  // Obtener modalidades y horarios únicos para los filtros
+  const modalidadesUnicas = Array.from(
+    new Set(vacantes.map(v => v.modalidad).filter(Boolean))
+  ).filter((m, index, self) => m && self.findIndex(t => t?.id === m.id) === index)
+
+  const horariosUnicos = Array.from(
+    new Set(vacantes.map(v => v.horario).filter(Boolean))
+  ).filter((h, index, self) => h && self.findIndex(t => t?.id === h.id) === index)
 
   return (
     <>
@@ -85,18 +103,91 @@ export default function VacantesDisponibles() {
           </Button>
         </div>
 
-        {/* Buscador */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por título o empresa..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+        {/* Buscador y Filtros */}
+        <Card className="mb-6">
+          <CardContent className="p-4 space-y-4">
+            {/* Barra de búsqueda */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por título o empresa..."
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setMostrarFiltros(!mostrarFiltros)}
+                className="gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                Filtros
+              </Button>
+            </div>
+
+            {/* Filtros avanzados */}
+            {mostrarFiltros && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Modalidad</label>
+                  <Select value={filtroModalidad} onValueChange={setFiltroModalidad}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas las modalidades" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas las modalidades</SelectItem>
+                      {modalidadesUnicas.map((modalidad) => (
+                        <SelectItem key={modalidad!.id} value={modalidad!.id}>
+                          {modalidad!.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Horario</label>
+                  <Select value={filtroHorario} onValueChange={setFiltroHorario}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos los horarios" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los horarios</SelectItem>
+                      {horariosUnicos.map((horario) => (
+                        <SelectItem key={horario!.id} value={horario!.id}>
+                          {horario!.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Botón para limpiar filtros */}
+                {(filtroModalidad !== "all" || filtroHorario !== "all") && (
+                  <div className="md:col-span-2">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setFiltroModalidad("all")
+                        setFiltroHorario("all")
+                      }}
+                      className="w-full"
+                    >
+                      Limpiar Filtros
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Contador de resultados */}
+            <div className="text-sm text-muted-foreground">
+              Mostrando {vacantesFiltradas.length} de {vacantes.length} vacantes
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Loading */}
         {loading && (
@@ -121,90 +212,143 @@ export default function VacantesDisponibles() {
             ) : (
               vacantesFiltradas.map((vacante) => {
                 const postulado = yaPostulado(vacante.id)
+                const diasPublicado = Math.floor(
+                  (new Date().getTime() - new Date(vacante.creado_en).getTime()) / (1000 * 60 * 60 * 24)
+                )
+                
                 return (
-                  <Card key={vacante.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
+                  <Card key={vacante.id} className="hover:shadow-lg transition-all border-l-4 border-l-primary/40 hover:border-l-primary">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <CardTitle className="text-xl">{vacante.titulo}</CardTitle>
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <CardTitle className="text-2xl">{vacante.titulo}</CardTitle>
                             {postulado && (
-                              <Badge variant="secondary" className="bg-green-100 text-green-700">
+                              <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100">
                                 <CheckCircle2 className="h-3 w-3 mr-1" />
                                 Ya postulado
                               </Badge>
                             )}
+                            {diasPublicado <= 3 && (
+                              <Badge variant="default" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100">
+                                Nuevo
+                              </Badge>
+                            )}
                           </div>
-                          <CardDescription className="flex items-center gap-4 flex-wrap">
-                            <span className="flex items-center gap-1">
+                          <CardDescription className="flex items-center gap-3 flex-wrap text-base">
+                            <span className="flex items-center gap-1.5 font-medium">
                               <Building2 className="h-4 w-4" />
                               {vacante.empresa?.name || "Empresa"}
                             </span>
                             {vacante.empresa?.area && (
-                              <span className="text-xs">• {vacante.empresa.area}</span>
+                              <span className="flex items-center gap-1.5 text-sm">
+                                •
+                                <span className="px-2 py-0.5 bg-muted rounded-full">
+                                  {vacante.empresa.area}
+                                </span>
+                              </span>
                             )}
                           </CardDescription>
                         </div>
-                        <Badge variant={vacante.estado === "ABIERTA" ? "default" : "secondary"}>
+                        <Badge 
+                          variant={vacante.estado === "ABIERTA" ? "default" : "secondary"}
+                          className="text-sm px-3 py-1"
+                        >
                           {vacante.estado}
                         </Badge>
                       </div>
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                      {/* Descripción */}
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                      {/* Descripción con más líneas visibles */}
+                      <p className="text-sm text-muted-foreground line-clamp-4 leading-relaxed">
                         {vacante.descripcion}
                       </p>
 
-                      {/* Info adicional */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      {/* Info adicional en grid mejorado */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         {vacante.modalidad && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span>{vacante.modalidad.nombre}</span>
+                          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                            <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground">Modalidad</p>
+                              <p className="text-sm font-medium truncate">{vacante.modalidad.nombre}</p>
+                            </div>
                           </div>
                         )}
                         {vacante.horario && (
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            <span>{vacante.horario.nombre}</span>
+                          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                            <Clock className="h-4 w-4 text-primary flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground">Horario</p>
+                              <p className="text-sm font-medium truncate">{vacante.horario.nombre}</p>
+                            </div>
                           </div>
                         )}
                         {(vacante.salario_minimo || vacante.salario_maximo) && (
-                          <div className="flex items-center gap-2 col-span-2">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              {vacante.salario_minimo && vacante.salario_maximo
-                                ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
-                                : vacante.salario_minimo
-                                ? `Desde $${vacante.salario_minimo.toLocaleString()}`
-                                : `Hasta $${vacante.salario_maximo?.toLocaleString()}`}
-                            </span>
+                          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg sm:col-span-2">
+                            <DollarSign className="h-4 w-4 text-primary flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs text-muted-foreground">Salario</p>
+                              <p className="text-sm font-medium truncate">
+                                {vacante.salario_minimo && vacante.salario_maximo
+                                  ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
+                                  : vacante.salario_minimo
+                                  ? `Desde $${vacante.salario_minimo.toLocaleString()}`
+                                  : `Hasta $${vacante.salario_maximo?.toLocaleString()}`}
+                              </p>
+                            </div>
                           </div>
                         )}
                       </div>
 
-                      {/* Botón de postulación */}
-                      <div className="flex justify-end pt-2">
+                      {/* Información adicional en una línea */}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {diasPublicado === 0 
+                            ? "Publicado hoy" 
+                            : diasPublicado === 1
+                            ? "Publicado hace 1 día"
+                            : `Publicado hace ${diasPublicado} días`}
+                        </span>
+                        {vacante._count?.postulaciones !== undefined && (
+                          <span className="flex items-center gap-1">
+                            <Briefcase className="h-3 w-3" />
+                            {vacante._count.postulaciones} {vacante._count.postulaciones === 1 ? 'postulante' : 'postulantes'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex gap-2 justify-end pt-3 border-t">
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate(`/vacante/${vacante.id}`)}
+                          className="gap-2"
+                        >
+                          <Search className="h-4 w-4" />
+                          Ver Detalles
+                        </Button>
                         {postulado ? (
-                          <Button variant="outline" disabled>
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                          <Button variant="outline" disabled className="gap-2">
+                            <CheckCircle2 className="h-4 w-4" />
                             Ya te postulaste
                           </Button>
                         ) : (
                           <Button
                             onClick={() => handlePostular(vacante.id)}
                             disabled={postulando === vacante.id || vacante.estado !== "ABIERTA"}
+                            className="gap-2"
                           >
                             {postulando === vacante.id ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                                 Postulando...
                               </>
                             ) : (
                               <>
-                                <Briefcase className="h-4 w-4 mr-2" />
+                                <Briefcase className="h-4 w-4" />
                                 Postularme
                               </>
                             )}

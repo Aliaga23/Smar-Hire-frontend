@@ -138,8 +138,8 @@ export const deleteLenguaje = async (lenguajeId: string) => {
   return response.data
 }
 
-// Obtener recomendaciones personalizadas
-export const getRecomendaciones = async (): Promise<Recomendacion[]> => {
-  const response = await api.get('/candidatos/profile/recomendaciones')
+// Obtener recomendaciones personalizadas con cursos
+export const getRecomendaciones = async () => {
+  const response = await api.get('/candidatos/recomendaciones')
   return response.data
 }

@@ -50,10 +50,12 @@ export default function DashboardEmpresa() {
       try {
         setIsLoading(true)
         const data = await getVacantes({ empresaId })
-        setVacantes(data)
+        // getVacantes puede devolver { data: [], pagination: {} } o un array directo
+        setVacantes(Array.isArray(data) ? data : data.data || [])
       } catch (error) {
         console.error('Error al cargar vacantes:', error)
         toast.error('Error al cargar las vacantes')
+        setVacantes([])
       } finally {
         setIsLoading(false)
       }

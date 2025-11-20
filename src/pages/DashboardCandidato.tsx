@@ -262,7 +262,7 @@ export default function DashboardCandidato() {
             <Button variant="outline" asChild>
               <Link to="/mis-recomendaciones" className="gap-2">
                 <Lightbulb className="h-4 w-4" />
-                Recomendaciones
+                Recomendaciones IA
               </Link>
             </Button>
           </div>
@@ -385,8 +385,8 @@ export default function DashboardCandidato() {
                           </CardDescription>
                         </div>
                         <div className="text-right">
-                          <div className={`text-2xl font-bold ${getCompatibilidadColor(postulacion.puntuacion_compatibilidad)}`}>
-                            {postulacion.puntuacion_compatibilidad}%
+                          <div className={`text-2xl font-bold ${getCompatibilidadColor(postulacion.puntuacion_compatibilidad * 100)}`}>
+                            {Math.round(postulacion.puntuacion_compatibilidad * 100)}%
                           </div>
                           <p className="text-xs text-muted-foreground">Compatibilidad</p>
                         </div>

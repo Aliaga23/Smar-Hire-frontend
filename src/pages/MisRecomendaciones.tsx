@@ -22,7 +22,8 @@ export default function MisRecomendaciones() {
     try {
       setLoading(true)
       const data = await getRecomendaciones()
-      setRecomendaciones(data)
+      // El backend devuelve { total, recomendaciones }
+      setRecomendaciones(data.recomendaciones || [])
     } catch (error) {
       console.error("Error al cargar recomendaciones:", error)
       toast.error("Error al cargar las recomendaciones")
