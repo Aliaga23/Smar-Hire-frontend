@@ -7,9 +7,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, FileText, Save, ArrowLeft } from "lucide-react";
+import { Loader2, FileText, Save, ArrowLeft, Upload, Plus, Trash2, Briefcase, GraduationCap, MapPin, Calendar, Building } from "lucide-react";
 import { useCurrentUser } from "../utils/auth";
-import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI } from "@/services/candidato";
+import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadProfilePhoto } from "@/services/candidato";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useProfile } from "@/contexts/ProfileContext";
+import { 
+  getExperiencias, 
+  createExperiencia, 
+  deleteExperiencia,
+  type Experiencia,
+  type CreateExperienciaDto 
+} from "@/services/experiencia";
+import {
+  getEducaciones,
+  createEducacion,
+  deleteEducacion,
+  type Educacion,
+  type CreateEducacionDto
+} from "@/services/educacion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ProfileData {
   titulo: string;
@@ -21,14 +44,42 @@ interface ProfileData {
 export default function EditarPerfilCandidato() {
   const navigate = useNavigate();
   const { isAuthenticated, isCandidato } = useCurrentUser();
+  const { updateFotoPerfil } = useProfile();
 
   const [loading, setLoading] = useState(false);
   const [processingCV, setProcessingCV] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
     titulo: "",
     bio: "",
     ubicacion: "",
     foto_perfil_url: "",
+  });
+
+  // Estados para experiencia
+  const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
+  const [loadingExperiencias, setLoadingExperiencias] = useState(false);
+  const [showAddExperiencia, setShowAddExperiencia] = useState(false);
+  const [newExperiencia, setNewExperiencia] = useState<CreateExperienciaDto>({
+    titulo: "",
+    empresa: "",
+    descripcion: "",
+    ubicacion: "",
+    fecha_comienzo: "",
+    fecha_final: null,
+  });
+
+  // Estados para educación
+  const [educaciones, setEducaciones] = useState<Educacion[]>([]);
+  const [loadingEducaciones, setLoadingEducaciones] = useState(false);
+  const [showAddEducacion, setShowAddEducacion] = useState(false);
+  const [newEducacion, setNewEducacion] = useState<CreateEducacionDto>({
+    titulo: "",
+    institucion: "",
+    descripcion: "",
+    estado: "EN_CURSO",
+    fecha_comienzo: "",
+    fecha_final: null,
   });
 
   useEffect(() => {
@@ -48,8 +99,38 @@ export default function EditarPerfilCandidato() {
         ubicacion: data.ubicacion || "",
         foto_perfil_url: data.foto_perfil_url || "",
       });
+      
+      // Cargar experiencias y educaciones
+      await Promise.all([
+        fetchExperiencias(),
+        fetchEducaciones()
+      ]);
     } catch (error) {
       toast.error("No se pudo cargar el perfil");
+    }
+  };
+
+  const fetchExperiencias = async () => {
+    try {
+      setLoadingExperiencias(true);
+      const data = await getExperiencias();
+      setExperiencias(data);
+    } catch (error) {
+      console.error("Error loading experiencias:", error);
+    } finally {
+      setLoadingExperiencias(false);
+    }
+  };
+
+  const fetchEducaciones = async () => {
+    try {
+      setLoadingEducaciones(true);
+      const data = await getEducaciones();
+      setEducaciones(data);
+    } catch (error) {
+      console.error("Error loading educaciones:", error);
+    } finally {
+      setLoadingEducaciones(false);
     }
   };
 
@@ -129,6 +210,136 @@ export default function EditarPerfilCandidato() {
       });
     } finally {
       setProcessingCV(false);
+    }
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor selecciona un archivo de imagen válido");
+      return;
+    }
+
+    // Validar tamaño (máx 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no debe superar los 5MB");
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+      
+      const reader = new FileReader();
+      
+      const imageDataPromise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const imageData = await imageDataPromise;
+
+      const response = await uploadProfilePhoto(imageData);
+
+      // Actualizar estado local con nueva URL de foto
+      setProfileData(prev => ({
+        ...prev,
+        foto_perfil_url: response.foto_perfil_url
+      }));
+
+      // Actualizar contexto global para que se refleje en navbar
+      updateFotoPerfil(response.foto_perfil_url);
+
+      toast.success("¡Foto de perfil actualizada!", {
+        description: "Tu foto ha sido subida exitosamente",
+      });
+    } catch (error) {
+      console.error("Error al subir foto:", error);
+      toast.error("Error al subir foto", {
+        description: "No se pudo subir la imagen. Intenta nuevamente.",
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  // ==================== FUNCIONES EXPERIENCIA ====================
+  const handleAddExperiencia = async () => {
+    if (!newExperiencia.titulo || !newExperiencia.empresa || !newExperiencia.fecha_comienzo) {
+      toast.error("Campos requeridos", {
+        description: "Completa título, empresa y fecha de inicio",
+      });
+      return;
+    }
+
+    try {
+      await createExperiencia(newExperiencia);
+      toast.success("Experiencia agregada");
+      await fetchExperiencias();
+      setShowAddExperiencia(false);
+      setNewExperiencia({
+        titulo: "",
+        empresa: "",
+        descripcion: "",
+        ubicacion: "",
+        fecha_comienzo: "",
+        fecha_final: null,
+      });
+    } catch (error) {
+      toast.error("No se pudo agregar la experiencia");
+    }
+  };
+
+  const handleDeleteExperiencia = async (id: string) => {
+    try {
+      await deleteExperiencia(id);
+      toast.success("Experiencia eliminada");
+      await fetchExperiencias();
+    } catch (error) {
+      toast.error("No se pudo eliminar la experiencia");
+    }
+  };
+
+  // ==================== FUNCIONES EDUCACIÓN ====================
+  const handleAddEducacion = async () => {
+    if (!newEducacion.titulo || !newEducacion.institucion || !newEducacion.estado) {
+      toast.error("Campos requeridos", {
+        description: "Completa título, institución y estado",
+      });
+      return;
+    }
+
+    try {
+      await createEducacion(newEducacion);
+      toast.success("Educación agregada");
+      await fetchEducaciones();
+      setShowAddEducacion(false);
+      setNewEducacion({
+        titulo: "",
+        institucion: "",
+        descripcion: "",
+        estado: "EN_CURSO",
+        fecha_comienzo: "",
+        fecha_final: null,
+      });
+    } catch (error) {
+      toast.error("No se pudo agregar la educación");
+    }
+  };
+
+  const handleDeleteEducacion = async (id: string) => {
+    try {
+      await deleteEducacion(id);
+      toast.success("Educación eliminada");
+      await fetchEducaciones();
+    } catch (error) {
+      toast.error("No se pudo eliminar la educación");
     }
   };
 
@@ -234,6 +445,58 @@ export default function EditarPerfilCandidato() {
                 <p className="text-xs text-muted-foreground">
                   Máximo 200 palabras. Destaca tu experiencia más relevante.
                 </p>
+              </div>
+
+              {/* Row 3: Foto de Perfil */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Foto de Perfil
+                </Label>
+                <div className="flex items-center gap-6">
+                  <Avatar className="h-24 w-24">
+                    {profileData.foto_perfil_url ? (
+                      <AvatarImage src={profileData.foto_perfil_url} alt="Foto de perfil" />
+                    ) : (
+                      <AvatarFallback className="text-2xl bg-primary/10">
+                        {profileData.titulo?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex-1">
+                    <label htmlFor="photo-upload">
+                      <Button 
+                        variant="outline" 
+                        disabled={uploadingPhoto}
+                        asChild
+                      >
+                        <span className="cursor-pointer gap-2">
+                          {uploadingPhoto ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Subiendo...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4" />
+                              Cambiar Foto
+                            </>
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                    <Input
+                      id="photo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      disabled={uploadingPhoto}
+                      className="hidden"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      JPG, PNG o GIF. Máximo 5MB.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Row 3: Foto de Perfil */}

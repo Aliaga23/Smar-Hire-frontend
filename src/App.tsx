@@ -2,6 +2,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { LandingNavbar } from "@/components/LandingNavbar"
 import { Toaster } from "@/components/ui/sonner"
+import { ProfileProvider } from "@/contexts/ProfileContext"
 import LandingPage from "@/pages/LandingPage"
 import VacantesPublicas from "@/pages/VacantesPublicas"
 import LoginPage from "@/pages/LoginPage"
@@ -25,30 +26,32 @@ import './App.css'
 function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<><LandingNavbar /><LandingPage /></>} />
-          <Route path="/vacantes" element={<VacantesPublicas />} />
-          <Route path="/login" element={<><LandingNavbar /><LoginPage /></>} />
-          <Route path="/signup" element={<><LandingNavbar /><SignupPage /></>} />
-          <Route path="/register-empresa" element={<><LandingNavbar /><RegisterEmpresaPage /></>} />
-          <Route path="/register/reclutador" element={<RegisterReclutador />} />
-          <Route path="/dashboard-candidato" element={<DashboardCandidato />} />
-          <Route path="/dashboard-empresa" element={<DashboardEmpresa />} />
-          <Route path="/dashboard-reclutador" element={<DashboardReclutador />} />
-          <Route path="/editar-perfil" element={<EditarPerfilCandidato />} />
-          <Route path="/gestionar-habilidades" element={<GestionarHabilidades />} />
-          <Route path="/vacantes-disponibles" element={<VacantesDisponibles />} />
-          <Route path="/mis-recomendaciones" element={<MisRecomendaciones />} />
-          <Route path="/vacante/:id" element={<VacanteDetalleRouter />} />
-          <Route path="/perfil-candidato/:id" element={<PerfilCandidato />} />
-          <Route path="/perfil" element={<PerfilReclutador />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/vacante/crear" element={<CrearVacante />} />
-          <Route path="/vacante/editar/:id" element={<CrearVacante />} />
-        </Routes>
-        <Toaster />
-      </BrowserRouter>
+      <ProfileProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<><LandingNavbar /><LandingPage /></>} />
+            <Route path="/vacantes" element={<VacantesPublicas />} />
+            <Route path="/login" element={<><LandingNavbar /><LoginPage /></>} />
+            <Route path="/signup" element={<><LandingNavbar /><SignupPage /></>} />
+            <Route path="/register-empresa" element={<><LandingNavbar /><RegisterEmpresaPage /></>} />
+            <Route path="/register/reclutador" element={<RegisterReclutador />} />
+            <Route path="/dashboard-candidato" element={<DashboardCandidato />} />
+            <Route path="/dashboard-empresa" element={<DashboardEmpresa />} />
+            <Route path="/dashboard-reclutador" element={<DashboardReclutador />} />
+            <Route path="/editar-perfil" element={<EditarPerfilCandidato />} />
+            <Route path="/gestionar-habilidades" element={<GestionarHabilidades />} />
+            <Route path="/vacantes-disponibles" element={<VacantesDisponibles />} />
+            <Route path="/mis-recomendaciones" element={<MisRecomendaciones />} />
+            <Route path="/vacante/:id" element={<VacanteDetalleRouter />} />
+            <Route path="/perfil-candidato/:id" element={<PerfilCandidato />} />
+            <Route path="/perfil" element={<PerfilReclutador />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/vacante/crear" element={<CrearVacante />} />
+            <Route path="/vacante/editar/:id" element={<CrearVacante />} />
+          </Routes>
+          <Toaster />
+        </BrowserRouter>
+      </ProfileProvider>
     </ThemeProvider>
   )
 }

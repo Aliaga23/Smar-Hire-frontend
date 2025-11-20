@@ -9,13 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ModeToggle } from "@/components/mode-toggle"
 import { useCurrentUser } from "@/utils/auth"
+import { useProfile } from "@/contexts/ProfileContext"
 
 export function CandidatoNavbar() {
   const navigate = useNavigate()
   const { user, logout } = useCurrentUser()
+  const { fotoPerfil } = useProfile()
 
   const handleLogout = () => {
     logout()
@@ -77,6 +79,7 @@ export function CandidatoNavbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
+                  {fotoPerfil && <AvatarImage src={fotoPerfil} alt="Foto de perfil" />}
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {initials}
                   </AvatarFallback>

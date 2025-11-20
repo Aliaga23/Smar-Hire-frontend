@@ -24,8 +24,37 @@ import {
   TrendingUp,
   Edit,
   Settings,
-  Lightbulb
+  Lightbulb,
+  Plus,
+  Trash2,
+  Building,
+  Loader2
 } from "lucide-react"
+import { 
+  getExperiencias, 
+  createExperiencia, 
+  deleteExperiencia,
+  type CreateExperienciaDto 
+} from "@/services/experiencia"
+import {
+  getEducaciones,
+  createEducacion,
+  deleteEducacion,
+  type CreateEducacionDto
+} from "@/services/educacion"
+import { getCandidatoProfile } from "@/services/candidato"
+import { getMisPostulaciones, type Postulacion } from "@/services/postulacion"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 
 interface Habilidad {
   id: string
@@ -53,10 +82,11 @@ interface Experiencia {
   id: string
   titulo: string
   empresa: string
-  ubicacion: string
+  ubicacion: string | null
   fecha_comienzo: string
   fecha_final: string | null
-  descripcion: string
+  descripcion: string | null
+  candidatoId: string
 }
 
 interface Educacion {
@@ -64,9 +94,10 @@ interface Educacion {
   titulo: string
   institucion: string
   estado: string
-  fecha_comienzo: string
+  fecha_comienzo: string | null
   fecha_final: string | null
-  descripcion: string
+  descripcion: string | null
+  candidatoId: string
 }
 
 interface CandidatoProfile {
@@ -89,34 +120,6 @@ interface CandidatoProfile {
   }
 }
 
-interface Postulacion {
-  id: string
-  puntuacion_compatibilidad: number
-  creado_en: string
-  vacante: {
-    id: string
-    titulo: string
-    descripcion: string
-    salario_minimo: number
-    salario_maximo: number
-    estado: string
-    creado_en: string
-    empresa: {
-      id: string
-      name: string
-      area: string
-    }
-    modalidad: {
-      id: string
-      nombre: string
-    }
-    horario: {
-      id: string
-      nombre: string
-    }
-  }
-}
-
 export default function DashboardCandidato() {
   const { isAuthenticated, isCandidato } = useCurrentUser()
   const [profile, setProfile] = useState<CandidatoProfile | null>(null)
@@ -124,6 +127,27 @@ export default function DashboardCandidato() {
   const [experiencias, setExperiencias] = useState<Experiencia[]>([])
   const [educaciones, setEducaciones] = useState<Educacion[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Estados para formularios
+  const [showAddExperiencia, setShowAddExperiencia] = useState(false)
+  const [showAddEducacion, setShowAddEducacion] = useState(false)
+  const [loadingAction, setLoadingAction] = useState(false)
+  const [newExperiencia, setNewExperiencia] = useState<CreateExperienciaDto>({
+    titulo: "",
+    empresa: "",
+    descripcion: "",
+    ubicacion: "",
+    fecha_comienzo: "",
+    fecha_final: null,
+  })
+  const [newEducacion, setNewEducacion] = useState<CreateEducacionDto>({
+    titulo: "",
+    institucion: "",
+    descripcion: "",
+    estado: "EN_CURSO",
+    fecha_comienzo: "",
+    fecha_final: null,
+  })
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -140,24 +164,11 @@ export default function DashboardCandidato() {
   const fetchAllData = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('token')
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-
-      const [profileRes, postulacionesRes, experienciasRes, educacionesRes] = await Promise.all([
-        fetch('http://localhost:3000/api/candidatos/profile', { headers }),
-        fetch('http://localhost:3000/api/postulaciones/mis-postulaciones?limit=10', { headers }),
-        fetch('http://localhost:3000/api/experiencia', { headers }),
-        fetch('http://localhost:3000/api/educacion', { headers })
-      ])
-
       const [profileData, postulacionesData, experienciasData, educacionesData] = await Promise.all([
-        profileRes.json(),
-        postulacionesRes.json(),
-        experienciasRes.json(),
-        educacionesRes.json()
+        getCandidatoProfile(),
+        getMisPostulaciones(1, 10),
+        getExperiencias(),
+        getEducaciones()
       ])
 
       setProfile(profileData)
@@ -193,6 +204,106 @@ export default function DashboardCandidato() {
     })
   }
 
+  // ==================== FUNCIONES EXPERIENCIA ====================
+  const handleAddExperiencia = async () => {
+    if (!newExperiencia.titulo || !newExperiencia.empresa || !newExperiencia.fecha_comienzo) {
+      toast.error("Campos requeridos", {
+        description: "Completa título, empresa y fecha de inicio",
+      })
+      return
+    }
+
+    try {
+      setLoadingAction(true)
+      await createExperiencia(newExperiencia)
+      toast.success("Experiencia agregada")
+      
+      // Recargar experiencias
+      const experienciasData = await getExperiencias()
+      setExperiencias(experienciasData)
+      
+      setShowAddExperiencia(false)
+      setNewExperiencia({
+        titulo: "",
+        empresa: "",
+        descripcion: "",
+        ubicacion: "",
+        fecha_comienzo: "",
+        fecha_final: null,
+      })
+    } catch (error) {
+      toast.error("No se pudo agregar la experiencia")
+    } finally {
+      setLoadingAction(false)
+    }
+  }
+
+  const handleDeleteExperiencia = async (id: string) => {
+    try {
+      setLoadingAction(true)
+      await deleteExperiencia(id)
+      toast.success("Experiencia eliminada")
+      
+      // Recargar experiencias
+      const experienciasData = await getExperiencias()
+      setExperiencias(experienciasData)
+    } catch (error) {
+      toast.error("No se pudo eliminar la experiencia")
+    } finally {
+      setLoadingAction(false)
+    }
+  }
+
+  // ==================== FUNCIONES EDUCACIÓN ====================
+  const handleAddEducacion = async () => {
+    if (!newEducacion.titulo || !newEducacion.institucion || !newEducacion.estado) {
+      toast.error("Campos requeridos", {
+        description: "Completa título, institución y estado",
+      })
+      return
+    }
+
+    try {
+      setLoadingAction(true)
+      await createEducacion(newEducacion)
+      toast.success("Educación agregada")
+      
+      // Recargar educaciones
+      const educacionesData = await getEducaciones()
+      setEducaciones(educacionesData)
+      
+      setShowAddEducacion(false)
+      setNewEducacion({
+        titulo: "",
+        institucion: "",
+        descripcion: "",
+        estado: "EN_CURSO",
+        fecha_comienzo: "",
+        fecha_final: null,
+      })
+    } catch (error) {
+      toast.error("No se pudo agregar la educación")
+    } finally {
+      setLoadingAction(false)
+    }
+  }
+
+  const handleDeleteEducacion = async (id: string) => {
+    try {
+      setLoadingAction(true)
+      await deleteEducacion(id)
+      toast.success("Educación eliminada")
+      
+      // Recargar educaciones
+      const educacionesData = await getEducaciones()
+      setEducaciones(educacionesData)
+    } catch (error) {
+      toast.error("No se pudo eliminar la educación")
+    } finally {
+      setLoadingAction(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -220,7 +331,7 @@ export default function DashboardCandidato() {
     )
   }
 
-  const postulacionesActivas = postulaciones.filter(p => p.vacante.estado === 'ABIERTA')
+  const postulacionesActivas = postulaciones.filter(p => p.vacante?.estado === 'ABIERTA')
   const habilidadPromedio = profile.habilidadesCandidato.length > 0
     ? Math.round(profile.habilidadesCandidato.reduce((sum, h) => sum + h.nivel, 0) / profile.habilidadesCandidato.length * 10)
     : 0
@@ -363,8 +474,8 @@ export default function DashboardCandidato() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <CardTitle className="text-xl">{postulacion.vacante.titulo}</CardTitle>
-                            {postulacion.vacante.estado === 'ABIERTA' ? (
+                            <CardTitle className="text-xl">{postulacion.vacante?.titulo}</CardTitle>
+                            {postulacion.vacante?.estado === 'ABIERTA' ? (
                               <Badge variant="default" className="gap-1">
                                 <CheckCircle2 className="w-3 h-3" />
                                 Abierta
@@ -379,14 +490,14 @@ export default function DashboardCandidato() {
                           <CardDescription className="flex items-center gap-4 text-sm">
                             <span className="flex items-center gap-1">
                               <Building2 className="w-4 h-4" />
-                              {postulacion.vacante.empresa.name}
+                              {postulacion.vacante?.empresa?.name}
                             </span>
-                            <span>{postulacion.vacante.empresa.area}</span>
+                            <span>{postulacion.vacante?.empresa?.area}</span>
                           </CardDescription>
                         </div>
                         <div className="text-right">
-                          <div className={`text-2xl font-bold ${getCompatibilidadColor(postulacion.puntuacion_compatibilidad * 100)}`}>
-                            {Math.round(postulacion.puntuacion_compatibilidad * 100)}%
+                          <div className={`text-2xl font-bold ${getCompatibilidadColor((postulacion.puntuacion_compatibilidad || 0) * 100)}`}>
+                            {Math.round((postulacion.puntuacion_compatibilidad || 0) * 100)}%
                           </div>
                           <p className="text-xs text-muted-foreground">Compatibilidad</p>
                         </div>
@@ -394,18 +505,18 @@ export default function DashboardCandidato() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                        {postulacion.vacante.descripcion}
+                        {postulacion.vacante?.descripcion}
                       </p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 text-sm">
-                          {postulacion.vacante.salario_minimo && (
+                          {postulacion.vacante?.salario_minimo && (
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <DollarSign className="w-4 h-4" />
-                              ${postulacion.vacante.salario_minimo.toLocaleString()} - ${postulacion.vacante.salario_maximo?.toLocaleString()}
+                              ${postulacion.vacante?.salario_minimo.toLocaleString()} - ${postulacion.vacante?.salario_maximo?.toLocaleString()}
                             </div>
                           )}
-                          <Badge variant="outline">{postulacion.vacante.modalidad.nombre}</Badge>
-                          <Badge variant="outline">{postulacion.vacante.horario.nombre}</Badge>
+                          <Badge variant="outline">{postulacion.vacante?.modalidad?.nombre}</Badge>
+                          <Badge variant="outline">{postulacion.vacante?.horario?.nombre}</Badge>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="w-4 h-4" />
@@ -548,12 +659,111 @@ export default function DashboardCandidato() {
             {/* Experiencia Laboral */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="w-5 h-5" />
-                  Experiencia Laboral ({experiencias.length})
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="w-5 h-5" />
+                    Experiencia Laboral ({experiencias.length})
+                  </CardTitle>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setShowAddExperiencia(!showAddExperiencia)}
+                    variant={showAddExperiencia ? "outline" : "default"}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {showAddExperiencia ? "Cancelar" : "Agregar"}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
+                {/* Formulario para agregar */}
+                {showAddExperiencia && (
+                  <div className="border rounded-lg p-4 mb-6 bg-muted/20">
+                    <h4 className="font-semibold mb-4">Nueva Experiencia</h4>
+                    <div className="grid gap-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="exp-titulo">Cargo/Título <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="exp-titulo"
+                            placeholder="Ej: Senior Software Engineer"
+                            value={newExperiencia.titulo}
+                            onChange={(e) => setNewExperiencia({ ...newExperiencia, titulo: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="exp-empresa">Empresa <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="exp-empresa"
+                            placeholder="Ej: Google"
+                            value={newExperiencia.empresa}
+                            onChange={(e) => setNewExperiencia({ ...newExperiencia, empresa: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="exp-ubicacion">Ubicación</Label>
+                          <Input
+                            id="exp-ubicacion"
+                            placeholder="Ej: Ciudad de México"
+                            value={newExperiencia.ubicacion || ""}
+                            onChange={(e) => setNewExperiencia({ ...newExperiencia, ubicacion: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="exp-inicio">Fecha Inicio <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="exp-inicio"
+                            type="date"
+                            value={newExperiencia.fecha_comienzo}
+                            onChange={(e) => setNewExperiencia({ ...newExperiencia, fecha_comienzo: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="exp-fin">Fecha Fin</Label>
+                          <Input
+                            id="exp-fin"
+                            type="date"
+                            value={newExperiencia.fecha_final || ""}
+                            onChange={(e) => setNewExperiencia({ ...newExperiencia, fecha_final: e.target.value || null })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="exp-descripcion">Descripción</Label>
+                        <Textarea
+                          id="exp-descripcion"
+                          placeholder="Describe tus responsabilidades y logros..."
+                          rows={3}
+                          value={newExperiencia.descripcion || ""}
+                          onChange={(e) => setNewExperiencia({ ...newExperiencia, descripcion: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="outline" onClick={() => setShowAddExperiencia(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleAddExperiencia} disabled={loadingAction}>
+                          {loadingAction ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Guardar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {experiencias.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No has agregado experiencia laboral aún</p>
                 ) : (
@@ -561,19 +771,37 @@ export default function DashboardCandidato() {
                     {experiencias.map((exp) => (
                       <div key={exp.id} className="relative pl-6 pb-6 border-l-2 border-muted last:pb-0">
                         <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-primary" />
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-lg">{exp.titulo}</h3>
-                          <p className="text-sm font-medium text-muted-foreground">{exp.empresa}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <MapPin className="w-3 h-3" />
-                            {exp.ubicacion}
-                            <span>•</span>
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(exp.fecha_comienzo)} - {exp.fecha_final ? formatDate(exp.fecha_final) : 'Presente'}
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1 flex-1">
+                            <h3 className="font-semibold text-lg">{exp.titulo}</h3>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Building className="w-4 h-4" />
+                              <p className="text-sm font-medium">{exp.empresa}</p>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              {exp.ubicacion && (
+                                <>
+                                  <MapPin className="w-3 h-3" />
+                                  {exp.ubicacion}
+                                  <span>•</span>
+                                </>
+                              )}
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(exp.fecha_comienzo)} - {exp.fecha_final ? formatDate(exp.fecha_final) : 'Presente'}
+                            </div>
+                            {exp.descripcion && (
+                              <p className="text-sm mt-2">{exp.descripcion}</p>
+                            )}
                           </div>
-                          {exp.descripcion && (
-                            <p className="text-sm mt-2">{exp.descripcion}</p>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteExperiencia(exp.id)}
+                            disabled={loadingAction}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -585,12 +813,120 @@ export default function DashboardCandidato() {
             {/* Educación */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5" />
-                  Educación ({educaciones.length})
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5" />
+                    Educación ({educaciones.length})
+                  </CardTitle>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setShowAddEducacion(!showAddEducacion)}
+                    variant={showAddEducacion ? "outline" : "default"}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {showAddEducacion ? "Cancelar" : "Agregar"}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
+                {/* Formulario para agregar */}
+                {showAddEducacion && (
+                  <div className="border rounded-lg p-4 mb-6 bg-muted/20">
+                    <h4 className="font-semibold mb-4">Nueva Educación</h4>
+                    <div className="grid gap-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="edu-titulo">Título/Carrera <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="edu-titulo"
+                            placeholder="Ej: Ingeniería en Sistemas"
+                            value={newEducacion.titulo}
+                            onChange={(e) => setNewEducacion({ ...newEducacion, titulo: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edu-institucion">Institución <span className="text-destructive">*</span></Label>
+                          <Input
+                            id="edu-institucion"
+                            placeholder="Ej: Universidad Nacional"
+                            value={newEducacion.institucion}
+                            onChange={(e) => setNewEducacion({ ...newEducacion, institucion: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="edu-estado">Estado <span className="text-destructive">*</span></Label>
+                          <Select
+                            value={newEducacion.estado}
+                            onValueChange={(value: "COMPLETADO" | "EN_CURSO" | "INCOMPLETO") => 
+                              setNewEducacion({ ...newEducacion, estado: value })
+                            }
+                          >
+                            <SelectTrigger id="edu-estado">
+                              <SelectValue placeholder="Selecciona estado" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="EN_CURSO">En Curso</SelectItem>
+                              <SelectItem value="COMPLETADO">Completado</SelectItem>
+                              <SelectItem value="INCOMPLETO">Incompleto</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edu-inicio">Fecha Inicio</Label>
+                          <Input
+                            id="edu-inicio"
+                            type="date"
+                            value={newEducacion.fecha_comienzo || ""}
+                            onChange={(e) => setNewEducacion({ ...newEducacion, fecha_comienzo: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edu-fin">Fecha Fin</Label>
+                          <Input
+                            id="edu-fin"
+                            type="date"
+                            value={newEducacion.fecha_final || ""}
+                            onChange={(e) => setNewEducacion({ ...newEducacion, fecha_final: e.target.value || null })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="edu-descripcion">Descripción</Label>
+                        <Textarea
+                          id="edu-descripcion"
+                          placeholder="Describe especializaciones, logros académicos..."
+                          rows={3}
+                          value={newEducacion.descripcion || ""}
+                          onChange={(e) => setNewEducacion({ ...newEducacion, descripcion: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="outline" onClick={() => setShowAddEducacion(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleAddEducacion} disabled={loadingAction}>
+                          {loadingAction ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Guardar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {educaciones.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No has agregado educación aún</p>
                 ) : (
@@ -598,18 +934,38 @@ export default function DashboardCandidato() {
                     {educaciones.map((edu) => (
                       <div key={edu.id} className="relative pl-6 pb-6 border-l-2 border-muted last:pb-0">
                         <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-primary" />
-                        <div className="space-y-1">
-                          <h3 className="font-semibold text-lg">{edu.titulo}</h3>
-                          <p className="text-sm font-medium text-muted-foreground">{edu.institucion}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant="outline">{edu.estado}</Badge>
-                            <span>•</span>
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(edu.fecha_comienzo)} - {edu.fecha_final ? formatDate(edu.fecha_final) : 'Presente'}
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1 flex-1">
+                            <h3 className="font-semibold text-lg">{edu.titulo}</h3>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Building className="w-4 h-4" />
+                              <p className="text-sm font-medium">{edu.institucion}</p>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Badge variant="outline">
+                                {edu.estado === 'COMPLETADO' ? 'Completado' : edu.estado === 'EN_CURSO' ? 'En Curso' : 'Incompleto'}
+                              </Badge>
+                              {edu.fecha_comienzo && (
+                                <>
+                                  <span>•</span>
+                                  <Calendar className="w-3 h-3" />
+                                  {formatDate(edu.fecha_comienzo)} - {edu.fecha_final ? formatDate(edu.fecha_final) : 'Presente'}
+                                </>
+                              )}
+                            </div>
+                            {edu.descripcion && (
+                              <p className="text-sm mt-2">{edu.descripcion}</p>
+                            )}
                           </div>
-                          {edu.descripcion && (
-                            <p className="text-sm mt-2">{edu.descripcion}</p>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteEducacion(edu.id)}
+                            disabled={loadingAction}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}

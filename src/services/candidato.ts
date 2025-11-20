@@ -143,3 +143,9 @@ export const getRecomendaciones = async () => {
   const response = await api.get('/candidatos/recomendaciones')
   return response.data
 }
+
+// Subir foto de perfil
+export const uploadProfilePhoto = async (imageData: string) => {
+  const response = await api.post('/candidatos/profile/upload-photo', { imageData })
+  return response.data
+}
