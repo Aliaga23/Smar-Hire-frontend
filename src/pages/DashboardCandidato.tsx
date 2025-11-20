@@ -344,36 +344,40 @@ export default function DashboardCandidato() {
         {/* Header con info del usuario */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Bienvenido, {profile.usuario.name}
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               {profile.titulo || 'Candidato'} • {profile.ubicacion || 'Ubicación no especificada'}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
               <Link to="/editar-perfil" className="gap-2">
                 <Edit className="h-4 w-4" />
-                Editar Perfil
+                <span className="hidden sm:inline">Editar Perfil</span>
+                <span className="sm:hidden">Perfil</span>
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
               <Link to="/gestionar-habilidades" className="gap-2">
                 <Settings className="h-4 w-4" />
-                Gestionar Habilidades
+                <span className="hidden sm:inline">Gestionar Habilidades</span>
+                <span className="sm:hidden">Habilidades</span>
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
               <Link to="/vacantes-disponibles" className="gap-2">
                 <Search className="h-4 w-4" />
-                Buscar Empleos
+                <span className="hidden sm:inline">Buscar Empleos</span>
+                <span className="sm:hidden">Empleos</span>
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
               <Link to="/mis-recomendaciones" className="gap-2">
                 <Lightbulb className="h-4 w-4" />
-                Recomendaciones IA
+                <span className="hidden lg:inline">Recomendaciones IA</span>
+                <span className="lg:hidden">IA</span>
               </Link>
             </Button>
           </div>
@@ -444,11 +448,17 @@ export default function DashboardCandidato() {
 
         {/* Tabs principales */}
         <Tabs defaultValue="postulaciones" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="postulaciones">Mis Postulaciones</TabsTrigger>
-            <TabsTrigger value="perfil">Mi Perfil</TabsTrigger>
-            <TabsTrigger value="habilidades">Habilidades</TabsTrigger>
-            <TabsTrigger value="experiencia">Experiencia</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+            <TabsTrigger value="postulaciones" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Mis Postulaciones</span>
+              <span className="sm:hidden">Postulaciones</span>
+            </TabsTrigger>
+            <TabsTrigger value="perfil" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Mi Perfil</span>
+              <span className="sm:hidden">Perfil</span>
+            </TabsTrigger>
+            <TabsTrigger value="habilidades" className="text-xs sm:text-sm">Habilidades</TabsTrigger>
+            <TabsTrigger value="experiencia" className="text-xs sm:text-sm">Experiencia</TabsTrigger>
           </TabsList>
 
           {/* Tab: Postulaciones */}
@@ -471,31 +481,31 @@ export default function DashboardCandidato() {
                 {postulaciones.map((postulacion) => (
                   <Card key={postulacion.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CardTitle className="text-xl">{postulacion.vacante?.titulo}</CardTitle>
+                      <div className="flex flex-col sm:flex-row items-start gap-4 sm:justify-between">
+                        <div className="flex-1 w-full">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                            <CardTitle className="text-lg sm:text-xl">{postulacion.vacante?.titulo}</CardTitle>
                             {postulacion.vacante?.estado === 'ABIERTA' ? (
-                              <Badge variant="default" className="gap-1">
+                              <Badge variant="default" className="gap-1 w-fit">
                                 <CheckCircle2 className="w-3 h-3" />
                                 Abierta
                               </Badge>
                             ) : (
-                              <Badge variant="secondary" className="gap-1">
+                              <Badge variant="secondary" className="gap-1 w-fit">
                                 <XCircle className="w-3 h-3" />
                                 Cerrada
                               </Badge>
                             )}
                           </div>
-                          <CardDescription className="flex items-center gap-4 text-sm">
+                          <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
                             <span className="flex items-center gap-1">
                               <Building2 className="w-4 h-4" />
                               {postulacion.vacante?.empresa?.name}
                             </span>
-                            <span>{postulacion.vacante?.empresa?.area}</span>
+                            <span className="text-xs sm:text-sm">{postulacion.vacante?.empresa?.area}</span>
                           </CardDescription>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right">
                           <div className={`text-2xl font-bold ${getCompatibilidadColor((postulacion.puntuacion_compatibilidad || 0) * 100)}`}>
                             {Math.round((postulacion.puntuacion_compatibilidad || 0) * 100)}%
                           </div>
@@ -507,20 +517,26 @@ export default function DashboardCandidato() {
                       <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                         {postulacion.vacante?.descripcion}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
                           {postulacion.vacante?.salario_minimo && (
-                            <div className="flex items-center gap-1 text-muted-foreground">
+                            <div className="flex items-center gap-1 text-muted-foreground text-xs sm:text-sm">
                               <DollarSign className="w-4 h-4" />
-                              ${postulacion.vacante?.salario_minimo.toLocaleString()} - ${postulacion.vacante?.salario_maximo?.toLocaleString()}
+                              <span className="hidden sm:inline">
+                                ${postulacion.vacante?.salario_minimo.toLocaleString()} - ${postulacion.vacante?.salario_maximo?.toLocaleString()}
+                              </span>
+                              <span className="sm:hidden">
+                                ${postulacion.vacante?.salario_minimo.toLocaleString()}
+                              </span>
                             </div>
                           )}
-                          <Badge variant="outline">{postulacion.vacante?.modalidad?.nombre}</Badge>
-                          <Badge variant="outline">{postulacion.vacante?.horario?.nombre}</Badge>
+                          <Badge variant="outline" className="text-xs">{postulacion.vacante?.modalidad?.nombre}</Badge>
+                          <Badge variant="outline" className="text-xs">{postulacion.vacante?.horario?.nombre}</Badge>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          Postulado: {formatDate(postulacion.creado_en)}
+                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Postulado:</span>
+                          {formatDate(postulacion.creado_en)}
                         </div>
                       </div>
                     </CardContent>
@@ -546,10 +562,10 @@ export default function DashboardCandidato() {
                     {profile.bio || 'No has agregado una biografía aún'}
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Correo</label>
-                    <p className="mt-1 text-sm">{profile.usuario.correo}</p>
+                    <p className="mt-1 text-sm break-all">{profile.usuario.correo}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Teléfono</label>
@@ -603,12 +619,12 @@ export default function DashboardCandidato() {
           <TabsContent value="habilidades" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                     <Award className="w-5 h-5" />
                     Habilidades Técnicas ({profile.habilidadesCandidato.length})
                   </CardTitle>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <div className="text-2xl font-bold text-primary">{habilidadPromedio}%</div>
                     <p className="text-xs text-muted-foreground">Nivel Promedio</p>
                   </div>
@@ -659,8 +675,8 @@ export default function DashboardCandidato() {
             {/* Experiencia Laboral */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                     <Briefcase className="w-5 h-5" />
                     Experiencia Laboral ({experiencias.length})
                   </CardTitle>
@@ -668,6 +684,7 @@ export default function DashboardCandidato() {
                     size="sm" 
                     onClick={() => setShowAddExperiencia(!showAddExperiencia)}
                     variant={showAddExperiencia ? "outline" : "default"}
+                    className="w-full sm:w-auto"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     {showAddExperiencia ? "Cancelar" : "Agregar"}
@@ -742,11 +759,11 @@ export default function DashboardCandidato() {
                         />
                       </div>
 
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="outline" onClick={() => setShowAddExperiencia(false)}>
+                      <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                        <Button variant="outline" onClick={() => setShowAddExperiencia(false)} className="w-full sm:w-auto">
                           Cancelar
                         </Button>
-                        <Button onClick={handleAddExperiencia} disabled={loadingAction}>
+                        <Button onClick={handleAddExperiencia} disabled={loadingAction} className="w-full sm:w-auto">
                           {loadingAction ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -771,23 +788,27 @@ export default function DashboardCandidato() {
                     {experiencias.map((exp) => (
                       <div key={exp.id} className="relative pl-6 pb-6 border-l-2 border-muted last:pb-0">
                         <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-primary" />
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1 flex-1">
-                            <h3 className="font-semibold text-lg">{exp.titulo}</h3>
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                          <div className="space-y-1 flex-1 w-full sm:w-auto">
+                            <h3 className="font-semibold text-base sm:text-lg">{exp.titulo}</h3>
                             <div className="flex items-center gap-2 text-muted-foreground">
-                              <Building className="w-4 h-4" />
+                              <Building className="w-4 h-4 flex-shrink-0" />
                               <p className="text-sm font-medium">{exp.empresa}</p>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                               {exp.ubicacion && (
                                 <>
-                                  <MapPin className="w-3 h-3" />
-                                  {exp.ubicacion}
-                                  <span>•</span>
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3" />
+                                    {exp.ubicacion}
+                                  </div>
+                                  <span className="hidden sm:inline">•</span>
                                 </>
                               )}
-                              <Calendar className="w-3 h-3" />
-                              {formatDate(exp.fecha_comienzo)} - {exp.fecha_final ? formatDate(exp.fecha_final) : 'Presente'}
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {formatDate(exp.fecha_comienzo)} - {exp.fecha_final ? formatDate(exp.fecha_final) : 'Presente'}
+                              </div>
                             </div>
                             {exp.descripcion && (
                               <p className="text-sm mt-2">{exp.descripcion}</p>
@@ -798,7 +819,7 @@ export default function DashboardCandidato() {
                             size="icon"
                             onClick={() => handleDeleteExperiencia(exp.id)}
                             disabled={loadingAction}
-                            className="text-destructive hover:text-destructive"
+                            className="text-destructive hover:text-destructive flex-shrink-0"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -813,8 +834,8 @@ export default function DashboardCandidato() {
             {/* Educación */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                     <GraduationCap className="w-5 h-5" />
                     Educación ({educaciones.length})
                   </CardTitle>
@@ -822,6 +843,7 @@ export default function DashboardCandidato() {
                     size="sm" 
                     onClick={() => setShowAddEducacion(!showAddEducacion)}
                     variant={showAddEducacion ? "outline" : "default"}
+                    className="w-full sm:w-auto"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     {showAddEducacion ? "Cancelar" : "Agregar"}
@@ -905,11 +927,11 @@ export default function DashboardCandidato() {
                         />
                       </div>
 
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="outline" onClick={() => setShowAddEducacion(false)}>
+                      <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                        <Button variant="outline" onClick={() => setShowAddEducacion(false)} className="w-full sm:w-auto">
                           Cancelar
                         </Button>
-                        <Button onClick={handleAddEducacion} disabled={loadingAction}>
+                        <Button onClick={handleAddEducacion} disabled={loadingAction} className="w-full sm:w-auto">
                           {loadingAction ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -934,22 +956,24 @@ export default function DashboardCandidato() {
                     {educaciones.map((edu) => (
                       <div key={edu.id} className="relative pl-6 pb-6 border-l-2 border-muted last:pb-0">
                         <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-primary" />
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1 flex-1">
-                            <h3 className="font-semibold text-lg">{edu.titulo}</h3>
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                          <div className="space-y-1 flex-1 w-full sm:w-auto">
+                            <h3 className="font-semibold text-base sm:text-lg">{edu.titulo}</h3>
                             <div className="flex items-center gap-2 text-muted-foreground">
-                              <Building className="w-4 h-4" />
+                              <Building className="w-4 h-4 flex-shrink-0" />
                               <p className="text-sm font-medium">{edu.institucion}</p>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant="outline">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                              <Badge variant="outline" className="text-xs">
                                 {edu.estado === 'COMPLETADO' ? 'Completado' : edu.estado === 'EN_CURSO' ? 'En Curso' : 'Incompleto'}
                               </Badge>
                               {edu.fecha_comienzo && (
                                 <>
-                                  <span>•</span>
-                                  <Calendar className="w-3 h-3" />
-                                  {formatDate(edu.fecha_comienzo)} - {edu.fecha_final ? formatDate(edu.fecha_final) : 'Presente'}
+                                  <span className="hidden sm:inline">•</span>
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {formatDate(edu.fecha_comienzo)} - {edu.fecha_final ? formatDate(edu.fecha_final) : 'Presente'}
+                                  </div>
                                 </>
                               )}
                             </div>
@@ -962,7 +986,7 @@ export default function DashboardCandidato() {
                             size="icon"
                             onClick={() => handleDeleteEducacion(edu.id)}
                             disabled={loadingAction}
-                            className="text-destructive hover:text-destructive"
+                            className="text-destructive hover:text-destructive flex-shrink-0"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

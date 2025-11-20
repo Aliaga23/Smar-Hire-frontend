@@ -47,25 +47,25 @@ export default function MisRecomendaciones() {
   return (
     <>
       <CandidatoNavbar />
-      <main className="container mx-auto p-6 min-h-screen">
+      <main className="container mx-auto p-3 sm:p-6 min-h-screen">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Recomendaciones Personalizadas</h1>
-            <p className="text-muted-foreground mt-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold">Recomendaciones Personalizadas</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               Mejora tus habilidades con cursos sugeridos por IA
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate("/dashboard-candidato")}>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate("/dashboard-candidato")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
         </div>
 
         {/* Info Alert */}
-        <Alert className="mb-6 border-blue-200 bg-blue-50">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-sm text-blue-900">
+        <Alert className="mb-4 sm:mb-6 border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+          <AlertDescription className="text-xs sm:text-sm text-blue-900">
             Estas recomendaciones se generan automáticamente con IA cuando un reclutador ejecuta el algoritmo de matching para una vacante.
             Los cursos sugeridos te ayudarán a cubrir las habilidades que necesitas desarrollar.
           </AlertDescription>
@@ -100,26 +100,26 @@ export default function MisRecomendaciones() {
                 {recomendaciones.map((recomendacion) => (
                   <Card key={recomendacion.id} className="border-l-4 border-l-primary">
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row items-start gap-3 sm:justify-between">
+                        <div className="flex-1 w-full sm:w-auto">
                           <div className="flex items-center gap-2 mb-2">
-                            <Lightbulb className="h-5 w-5 text-primary" />
-                            <CardTitle className="text-lg">
+                            <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                            <CardTitle className="text-base sm:text-lg">
                               Mejorar: {recomendacion.habilidadesDiferencia.habilidad.nombre}
                             </CardTitle>
                           </div>
-                          <CardDescription className="flex items-center gap-4 flex-wrap">
-                            <span className="flex items-center gap-1">
-                              <Building2 className="h-4 w-4" />
+                          <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                            <span className="flex items-center gap-1 text-xs sm:text-sm">
+                              <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
                               {recomendacion.vacante.empresa.name}
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Briefcase className="h-4 w-4" />
+                            <span className="flex items-center gap-1 text-xs sm:text-sm">
+                              <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
                               {recomendacion.vacante.titulo}
                             </span>
                           </CardDescription>
                         </div>
-                        <Badge variant="outline" className="flex items-center gap-1">
+                        <Badge variant="outline" className="flex items-center gap-1 text-xs w-fit">
                           <TrendingUp className="h-3 w-3" />
                           Gap: {Math.abs(recomendacion.habilidadesDiferencia.diferencia)} niveles
                         </Badge>
@@ -144,11 +144,11 @@ export default function MisRecomendaciones() {
                           {recomendacion.cursos.map((rc) => (
                             <div
                               key={rc.id}
-                              className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                              className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                             >
-                              <div className="flex-1">
+                              <div className="flex-1 w-full sm:w-auto">
                                 <p className="font-medium text-sm">{rc.curso.nombre}</p>
-                                <div className="flex items-center gap-2 mt-1">
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
                                   <Badge variant="secondary" className="text-xs">
                                     Nivel: {getNivelTexto(rc.curso.nivel)}
                                   </Badge>
@@ -166,6 +166,7 @@ export default function MisRecomendaciones() {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                className="w-full sm:w-auto flex-shrink-0"
                                 onClick={() => window.open(rc.curso.url, "_blank")}
                               >
                                 <ExternalLink className="h-4 w-4 mr-2" />

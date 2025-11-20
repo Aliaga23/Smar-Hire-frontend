@@ -7,32 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, FileText, Save, ArrowLeft, Upload, Plus, Trash2, Briefcase, GraduationCap, MapPin, Calendar, Building } from "lucide-react";
+import { Loader2, FileText, Save, ArrowLeft, Upload } from "lucide-react";
 import { useCurrentUser } from "../utils/auth";
 import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadProfilePhoto } from "@/services/candidato";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
-import { 
-  getExperiencias, 
-  createExperiencia, 
-  deleteExperiencia,
-  type Experiencia,
-  type CreateExperienciaDto 
-} from "@/services/experiencia";
-import {
-  getEducaciones,
-  createEducacion,
-  deleteEducacion,
-  type Educacion,
-  type CreateEducacionDto
-} from "@/services/educacion";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface ProfileData {
   titulo: string;
@@ -56,32 +35,6 @@ export default function EditarPerfilCandidato() {
     foto_perfil_url: "",
   });
 
-  // Estados para experiencia
-  const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
-  const [loadingExperiencias, setLoadingExperiencias] = useState(false);
-  const [showAddExperiencia, setShowAddExperiencia] = useState(false);
-  const [newExperiencia, setNewExperiencia] = useState<CreateExperienciaDto>({
-    titulo: "",
-    empresa: "",
-    descripcion: "",
-    ubicacion: "",
-    fecha_comienzo: "",
-    fecha_final: null,
-  });
-
-  // Estados para educación
-  const [educaciones, setEducaciones] = useState<Educacion[]>([]);
-  const [loadingEducaciones, setLoadingEducaciones] = useState(false);
-  const [showAddEducacion, setShowAddEducacion] = useState(false);
-  const [newEducacion, setNewEducacion] = useState<CreateEducacionDto>({
-    titulo: "",
-    institucion: "",
-    descripcion: "",
-    estado: "EN_CURSO",
-    fecha_comienzo: "",
-    fecha_final: null,
-  });
-
   useEffect(() => {
     if (!isAuthenticated || !isCandidato) {
       navigate("/login");
@@ -99,38 +52,8 @@ export default function EditarPerfilCandidato() {
         ubicacion: data.ubicacion || "",
         foto_perfil_url: data.foto_perfil_url || "",
       });
-      
-      // Cargar experiencias y educaciones
-      await Promise.all([
-        fetchExperiencias(),
-        fetchEducaciones()
-      ]);
     } catch (error) {
       toast.error("No se pudo cargar el perfil");
-    }
-  };
-
-  const fetchExperiencias = async () => {
-    try {
-      setLoadingExperiencias(true);
-      const data = await getExperiencias();
-      setExperiencias(data);
-    } catch (error) {
-      console.error("Error loading experiencias:", error);
-    } finally {
-      setLoadingExperiencias(false);
-    }
-  };
-
-  const fetchEducaciones = async () => {
-    try {
-      setLoadingEducaciones(true);
-      const data = await getEducaciones();
-      setEducaciones(data);
-    } catch (error) {
-      console.error("Error loading educaciones:", error);
-    } finally {
-      setLoadingEducaciones(false);
     }
   };
 
@@ -266,80 +189,6 @@ export default function EditarPerfilCandidato() {
       });
     } finally {
       setUploadingPhoto(false);
-    }
-  };
-
-  // ==================== FUNCIONES EXPERIENCIA ====================
-  const handleAddExperiencia = async () => {
-    if (!newExperiencia.titulo || !newExperiencia.empresa || !newExperiencia.fecha_comienzo) {
-      toast.error("Campos requeridos", {
-        description: "Completa título, empresa y fecha de inicio",
-      });
-      return;
-    }
-
-    try {
-      await createExperiencia(newExperiencia);
-      toast.success("Experiencia agregada");
-      await fetchExperiencias();
-      setShowAddExperiencia(false);
-      setNewExperiencia({
-        titulo: "",
-        empresa: "",
-        descripcion: "",
-        ubicacion: "",
-        fecha_comienzo: "",
-        fecha_final: null,
-      });
-    } catch (error) {
-      toast.error("No se pudo agregar la experiencia");
-    }
-  };
-
-  const handleDeleteExperiencia = async (id: string) => {
-    try {
-      await deleteExperiencia(id);
-      toast.success("Experiencia eliminada");
-      await fetchExperiencias();
-    } catch (error) {
-      toast.error("No se pudo eliminar la experiencia");
-    }
-  };
-
-  // ==================== FUNCIONES EDUCACIÓN ====================
-  const handleAddEducacion = async () => {
-    if (!newEducacion.titulo || !newEducacion.institucion || !newEducacion.estado) {
-      toast.error("Campos requeridos", {
-        description: "Completa título, institución y estado",
-      });
-      return;
-    }
-
-    try {
-      await createEducacion(newEducacion);
-      toast.success("Educación agregada");
-      await fetchEducaciones();
-      setShowAddEducacion(false);
-      setNewEducacion({
-        titulo: "",
-        institucion: "",
-        descripcion: "",
-        estado: "EN_CURSO",
-        fecha_comienzo: "",
-        fecha_final: null,
-      });
-    } catch (error) {
-      toast.error("No se pudo agregar la educación");
-    }
-  };
-
-  const handleDeleteEducacion = async (id: string) => {
-    try {
-      await deleteEducacion(id);
-      toast.success("Educación eliminada");
-      await fetchEducaciones();
-    } catch (error) {
-      toast.error("No se pudo eliminar la educación");
     }
   };
 
