@@ -38,14 +38,14 @@ export function LandingNavbar() {
             <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
               Inicio
             </Link>
-            <Link to="/jobs" className="text-sm font-medium hover:text-primary transition-colors">
-              Empleos
-            </Link>
-            <Link to="/companies" className="text-sm font-medium hover:text-primary transition-colors">
-              Empresas
-            </Link>
             <Link to="/about" className="text-sm font-medium hover:text-primary transition-colors">
               Nosotros
+            </Link>
+            <Link to="/how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
+              Cómo funciona
+            </Link>
+            <Link to="/contact" className="text-sm font-medium hover:text-primary transition-colors">
+              Contacto
             </Link>
           </nav>
           

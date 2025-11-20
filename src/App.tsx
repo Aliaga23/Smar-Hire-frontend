@@ -22,6 +22,9 @@ import EditarPerfilCandidato from "@/pages/EditarPerfilCandidato"
 import GestionarHabilidades from "@/pages/GestionarHabilidades"
 import VacantesDisponibles from "@/pages/VacantesDisponibles"
 import MisRecomendaciones from "@/pages/MisRecomendaciones"
+import AboutPage from "@/pages/AboutPage"
+import HowItWorksPage from "@/pages/HowItWorksPage"
+import ContactPage from "@/pages/ContactPage"
 import './App.css'
 
 function App() {
@@ -31,6 +34,9 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<><LandingNavbar /><LandingPage /></>} />
+            <Route path="/about" element={<><LandingNavbar /><AboutPage /></>} />
+            <Route path="/how-it-works" element={<><LandingNavbar /><HowItWorksPage /></>} />
+            <Route path="/contact" element={<><LandingNavbar /><ContactPage /></>} />
             <Route path="/vacantes" element={<VacantesPublicas />} />
             <Route path="/login" element={<><LandingNavbar /><LoginPage /></>} />
             <Route path="/signup" element={<><LandingNavbar /><SignupPage /></>} />

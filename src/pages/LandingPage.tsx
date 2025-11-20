@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Briefcase, Users, TrendingUp, Building2, Clock, DollarSign } from "lucide-react"
+import { Search, Briefcase, Users, Building2, Clock, DollarSign } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 
@@ -181,24 +181,6 @@ export default function LandingPage() {
     return `$${min.toLocaleString()} - $${max.toLocaleString()}`
   }
 
-  const stats = [
-    { icon: Briefcase, label: "Empleos activos", value: "10,000+" },
-    { icon: Building2, label: "Empresas", value: "5,000+" },
-    { icon: Users, label: "Candidatos", value: "500K+" },
-    { icon: TrendingUp, label: "Contrataciones", value: "50K+" }
-  ]
-
-  const categories = [
-    "Desarrollo de Software",
-    "Diseño",
-    "Marketing",
-    "Ventas",
-    "Recursos Humanos",
-    "Finanzas",
-    "Ingeniería",
-    "Consultoría"
-  ]
-
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -207,11 +189,6 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] -z-10"></div>
         
         <div className="container mx-auto max-w-6xl text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-sm font-medium">+2,500 nuevos empleos esta semana</span>
-          </div>
-          
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
             Encuentra tu próximo{" "}
             <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -219,8 +196,7 @@ export default function LandingPage() {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            La plataforma que conecta talento excepcional con las mejores oportunidades. 
-            Más de <span className="font-semibold text-foreground">10,000 empleos</span> esperando por ti.
+            La plataforma que conecta talento excepcional con las mejores oportunidades usando inteligencia artificial.
           </p>
           
           {/* Search Bar */}
@@ -309,33 +285,8 @@ export default function LandingPage() {
                   </Select>
                 </div>
               </div>
-              
-              <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                <span className="text-sm text-muted-foreground">Búsquedas populares:</span>
-                <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors">React</Badge>
-                <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors">Product Manager</Badge>
-                <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors">UX Designer</Badge>
-                <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors">Remote</Badge>
-              </div>
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 px-4 border-y bg-muted/30">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center space-y-3 group">
-                <div className="inline-flex p-4 rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <stat.icon className="h-8 w-8 text-primary" />
-                </div>
-                <p className="text-4xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">{stat.value}</p>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -493,29 +444,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/30">
-        <div className="container mx-auto max-w-6xl space-y-12">
-          <div className="text-center space-y-4">
-            <Badge variant="outline" className="text-sm font-semibold px-4 py-1">CATEGORÍAS</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold">Explora por categoría</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Encuentra oportunidades en tu área de especialización
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {categories.map((category) => (
-              <Card key={category} className="group hover:bg-primary/5 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <p className="font-semibold group-hover:text-primary transition-colors">{category}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-5xl">
@@ -539,9 +467,6 @@ export default function LandingPage() {
                   <Link to="/register-empresa">Registrar Empresa</Link>
                 </Button>
               </div>
-              <p className="text-sm opacity-80 pt-4">
-                Sin tarjeta de crédito • Gratis para siempre • Configuración en 2 minutos
-              </p>
             </CardContent>
           </Card>
         </div>
@@ -550,28 +475,12 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t py-12 px-4 mt-auto">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-semibold mb-4">Para candidatos</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/jobs" className="hover:text-primary">Buscar empleos</Link></li>
-                <li><Link to="/profile" className="hover:text-primary">Crear perfil</Link></li>
-                <li><Link to="/resources" className="hover:text-primary">Recursos</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Para empresas</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/post-job" className="hover:text-primary">Publicar empleo</Link></li>
-                <li><Link to="/pricing" className="hover:text-primary">Planes</Link></li>
-                <li><Link to="/solutions" className="hover:text-primary">Soluciones</Link></li>
-              </ul>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
             <div>
               <h3 className="font-semibold mb-4">Compañía</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link to="/about" className="hover:text-primary">Nosotros</Link></li>
-                <li><Link to="/blog" className="hover:text-primary">Blog</Link></li>
+                <li><Link to="/how-it-works" className="hover:text-primary">Cómo funciona</Link></li>
                 <li><Link to="/contact" className="hover:text-primary">Contacto</Link></li>
               </ul>
             </div>
