@@ -51,5 +51,3 @@ README.md
 .editorconfig
 .eslintrc*
 .prettierrc*
-tsconfig*.json
-vite.config.ts
