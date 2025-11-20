@@ -379,7 +379,7 @@ export default function VacanteDetalle() {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => navigate(`/perfil-candidato/${postulacion.id}`)}
+                                onClick={() => navigate(`/perfil-candidato/${postulacion.candidato?.id}`)}
                                 className="cursor-pointer w-full sm:w-auto"
                               >
                                 Ver perfil completo
