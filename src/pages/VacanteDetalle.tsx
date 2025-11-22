@@ -266,7 +266,7 @@ export default function VacanteDetalle() {
           </CardContent>
         </Card>
 
-        {/* Postulaciones */}
+        {/* Postulaciones 2 */}
         <Card>
           <CardHeader>
             <CardTitle>Postulaciones ({loadingPostulaciones ? '...' : totalPostulaciones})</CardTitle>
