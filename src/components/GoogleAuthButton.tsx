@@ -22,7 +22,7 @@ export default function GoogleAuthButton({
 
   const handleGoogleAuth = (selectedUserType?: 'candidato' | 'empresa') => {
     const finalUserType = selectedUserType || userType
-    const baseUrl = 'http://localhost:3000/api/auth/google'
+    const baseUrl = 'https://api.sw2ficct.lat/api/auth/google'
     
     // Usar los nuevos endpoints específicos para login/registro
     let url = ''
