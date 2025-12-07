@@ -119,12 +119,6 @@ export function EmpresaNavbar() {
                   Mi Perfil
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/configuracion" className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configuración
-                </Link>
-              </DropdownMenuItem>
               {isEmpresaAdmin && (
                 <DropdownMenuItem asChild>
                   <Link to="/admin" className="cursor-pointer">

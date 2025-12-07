@@ -81,7 +81,7 @@ export function CandidatoNavbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/dashboard-candidato')}>
+              <DropdownMenuItem onClick={() => navigate('/editar-perfil')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Mi Perfil</span>
               </DropdownMenuItem>

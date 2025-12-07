@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { registerEmpresa } from "@/services/auth"
 import { toast } from "sonner"
+import GoogleAuthButton from "@/components/GoogleAuthButton"
 
 export default function RegisterEmpresaPage() {
   const navigate = useNavigate()
@@ -259,12 +260,29 @@ export default function RegisterEmpresaPage() {
             </Button>
             </form>
             
-            <Separator className="my-4" />
+            <div className="space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    O regístrate con
+                  </span>
+                </div>
+              </div>
+              
+              <GoogleAuthButton type="register" userType="empresa" />
+            </div>
             
             <div className="text-center text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
               <Link to="/login" className="text-primary font-semibold hover:underline">
                 Inicia sesión
+              </Link>
+              {" | "}
+              <Link to="/signup" className="text-primary font-semibold hover:underline">
+                Cambiar tipo de registro
               </Link>
             </div>
           </CardContent>

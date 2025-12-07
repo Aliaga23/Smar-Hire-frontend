@@ -13,7 +13,9 @@ import {
   Edit,
   MoreVertical,
   Trash2,
-  Download
+  Download,
+  BarChart3,
+  Settings
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -45,7 +47,7 @@ export default function DashboardEmpresa() {
   const [stats, setStats] = useState({
     vacantesActivas: 0,
     candidatosTotal: 0,
-    postulacionesPorRevisar: 0
+    totalReclutadores: 0
   })
   
   if (!isAuthenticated) {
@@ -69,17 +71,19 @@ export default function DashboardEmpresa() {
         const vacantesData = Array.isArray(data) ? data : data.data || []
         setVacantes(vacantesData)
         
-        // Cargar postulaciones para calcular "Por Revisar"
+        // Cargar postulaciones para calcular total de candidatos
         const { data: response } = await api.get('/postulaciones/empresa/candidatos?limit=9999')
         const postulaciones = response.data || []
         
-        // Calcular estadísticas
-        const porRevisar = postulaciones.filter((p: any) => p.puntuacion_compatibilidad === null).length
+        // Cargar reclutadores de la empresa
+        const { data: dashboardData } = await api.get(`/empresas/${empresaId}/dashboard`)
+        const reclutadores = dashboardData?.reclutadores || []
         
+        // Calcular estadísticas
         setStats({
           vacantesActivas: vacantesData.filter((v: any) => v.estado === 'ABIERTA').length,
           candidatosTotal: postulaciones.length,
-          postulacionesPorRevisar: porRevisar
+          totalReclutadores: reclutadores.length
         })
       } catch (error) {
         console.error('Error al cargar datos:', error)
@@ -395,7 +399,15 @@ export default function DashboardEmpresa() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => navigate('/admin-empresa')}>
+              <Settings className="h-4 w-4" />
+              Administrar
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={() => navigate(`/empresa/${empresaId}/analytics`)}>
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={handleGenerarReporte}>
               <FileText className="h-4 w-4" />
               Reportes
             </Button>
@@ -447,17 +459,17 @@ export default function DashboardEmpresa() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Por Revisar
+                Total Reclutadores
               </CardTitle>
-              <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <Clock className="h-4 w-4 text-orange-500" />
+              <div className="h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center">
+                <Users className="h-4 w-4 text-purple-500" />
               </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold">{stats.postulacionesPorRevisar}</div>
+                <div className="text-2xl font-bold">{stats.totalReclutadores}</div>
               )}
             </CardContent>
           </Card>

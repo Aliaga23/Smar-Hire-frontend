@@ -20,7 +20,8 @@ import {
   Languages,
   GraduationCap,
   Briefcase,
-  Calendar
+  Calendar,
+  FileText
 } from "lucide-react"
 
 interface CandidatoPublico {
@@ -29,6 +30,7 @@ interface CandidatoPublico {
   bio: string
   ubicacion: string
   foto_perfil_url: string | null
+  cv_url: string | null
   usuario: {
     name: string
     lastname: string
@@ -49,7 +51,7 @@ interface CandidatoPublico {
       nombre: string
     }
   }>
-  experienciasCandidato: Array<{
+  experiencias: Array<{
     id: string
     titulo: string
     empresa: string
@@ -58,7 +60,7 @@ interface CandidatoPublico {
     fecha_final: string | null
     descripcion: string
   }>
-  educacionesCandidato: Array<{
+  educaciones: Array<{
     id: string
     institucion: string
     titulo: string
@@ -201,6 +203,19 @@ export default function PerfilCandidato() {
                         </div>
                       )}
                     </div>
+
+                    {candidato?.cv_url && (
+                      <div className="pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(candidato.cv_url!, '_blank')}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Descargar CV
+                        </Button>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -229,9 +244,9 @@ export default function PerfilCandidato() {
                     </div>
                   ))}
                 </div>
-              ) : candidato?.experienciasCandidato && candidato.experienciasCandidato.length > 0 ? (
+              ) : candidato?.experiencias && candidato.experiencias.length > 0 ? (
                 <div className="space-y-3">
-                  {candidato.experienciasCandidato.map((exp, idx: number) => (
+                  {candidato.experiencias.map((exp, idx: number) => (
                     <div key={idx} className="border-l-2 border-primary pl-3 py-1">
                       <h4 className="font-semibold text-sm">{exp.titulo}</h4>
                       <p className="text-sm text-muted-foreground">{exp.empresa}</p>
@@ -287,9 +302,9 @@ export default function PerfilCandidato() {
                       </div>
                     ))}
                   </div>
-                ) : candidato?.educacionesCandidato && candidato.educacionesCandidato.length > 0 ? (
+                ) : candidato?.educaciones && candidato.educaciones.length > 0 ? (
                   <div className="space-y-3">
-                    {candidato.educacionesCandidato.map((edu, idx: number) => (
+                    {candidato.educaciones.map((edu, idx: number) => (
                       <div key={idx} className="border-l-2 border-primary pl-3 py-1">
                         <h4 className="font-semibold text-sm">{edu.titulo}</h4>
                         <p className="text-sm text-muted-foreground">{edu.institucion}</p>
@@ -386,10 +401,23 @@ export default function PerfilCandidato() {
 
         {/* Acciones */}
         <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
-          <Button variant="outline" className="w-full sm:w-auto">
-            Descargar CV
-          </Button>
-          <Button className="w-full sm:w-auto">
+          {candidato?.cv_url && (
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto"
+              onClick={() => window.open(candidato.cv_url!, '_blank')}
+            >
+              Descargar CV
+            </Button>
+          )}
+          <Button 
+            className="w-full sm:w-auto"
+            onClick={() => {
+              const subject = encodeURIComponent(`Contacto desde Smart Hire - ${candidato?.titulo || 'Candidato'}`)
+              const body = encodeURIComponent(`Hola ${candidato?.usuario.name},\n\nMe gustaría ponerme en contacto contigo respecto a tu perfil profesional.\n\nSaludos.`)
+              window.location.href = `mailto:${candidato?.usuario.correo}?subject=${subject}&body=${body}`
+            }}
+          >
             <Mail className="h-4 w-4 mr-2" />
             Contactar
           </Button>

@@ -6,6 +6,7 @@ export interface CandidatoProfile {
   bio: string
   ubicacion: string
   foto_perfil_url: string | null
+  cv_url: string | null
   usuario: {
     name: string
     lastname: string
@@ -84,6 +85,60 @@ export interface Recomendacion {
   }>
 }
 
+export interface PostulacionConRecomendaciones {
+  postulacion: {
+    id: string
+    puntuacion_compatibilidad: number
+    creado_en: string
+  }
+  vacante: {
+    id: string
+    titulo: string
+    descripcion: string
+    salario_minimo: number
+    salario_maximo: number
+    estado: string
+    empresa: {
+      id: string
+      name: string
+      area: string
+    }
+    modalidad: {
+      id: string
+      nombre: string
+    }
+    horario: {
+      id: string
+      nombre: string
+    }
+  }
+  recomendaciones: Array<{
+    id: string
+    mensaje: string
+    creado_en: string
+    habilidadesDiferencia: Array<{
+      id: string
+      diferencia: number
+      habilidad: {
+        id: string
+        nombre: string
+      }
+    }>
+    cursos: Array<{
+      id: string
+      curso: {
+        id: string
+        nombre: string
+        proveedor: string
+        url: string
+        nivel: number
+        duracion: string
+      }
+    }>
+  }>
+  totalRecomendaciones: number
+}
+
 // Obtener perfil del candidato autenticado
 export const getCandidatoProfile = async (): Promise<CandidatoProfile> => {
   const response = await api.get('/candidatos/profile')
@@ -144,8 +199,19 @@ export const getRecomendaciones = async () => {
   return response.data
 }
 
+export const getRecomendacionesPorPostulacion = async () => {
+  const response = await api.get('/candidatos/recomendaciones/por-postulacion')
+  return response.data
+}
+
 // Subir foto de perfil
 export const uploadProfilePhoto = async (imageData: string) => {
   const response = await api.post('/candidatos/profile/upload-photo', { imageData })
+  return response.data
+}
+
+// Subir CV
+export const uploadCV = async (fileData: string) => {
+  const response = await api.post('/candidatos/profile/upload-cv', { fileData })
   return response.data
 }

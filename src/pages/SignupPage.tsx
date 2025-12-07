@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { registerCandidato } from "@/services/auth"
 import { toast } from "sonner"
+import GoogleAuthButton from "@/components/GoogleAuthButton"
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -209,12 +210,29 @@ export default function SignupPage() {
             </Button>
             </form>
             
-            <Separator className="my-4" />
+            <div className="space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    O regístrate con
+                  </span>
+                </div>
+              </div>
+              
+              <GoogleAuthButton type="register" userType="candidato" />
+            </div>
             
             <div className="text-center text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
               <Link to="/login" className="text-primary font-semibold hover:underline">
                 Inicia sesión
+              </Link>
+              {" | "}
+              <Link to="/signup" className="text-primary font-semibold hover:underline">
+                Cambiar tipo de registro
               </Link>
             </div>
           </CardContent>

@@ -5,7 +5,9 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
 import { login } from "../services/auth"
+import GoogleAuthButton from "@/components/GoogleAuthButton"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -232,6 +234,21 @@ export default function LoginPage() {
               {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
             </Button>
           </form>
+          
+          {/* Separator */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                O continúa con
+              </span>
+            </div>
+          </div>
+          
+          {/* Google Auth Button */}
+          <GoogleAuthButton type="login" showSelector={true} />
           
           {/* Sign up link */}
           <div className="text-center text-sm">

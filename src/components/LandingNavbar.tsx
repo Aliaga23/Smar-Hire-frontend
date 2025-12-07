@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Briefcase, User, LogIn, UserPlus, Building2, LogOut, Settings } from "lucide-react"
+import { Briefcase, User, LogIn, UserPlus, LogOut, Settings } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useCurrentUser } from "@/utils/auth"
 
@@ -108,13 +108,7 @@ export function LandingNavbar() {
                   <DropdownMenuItem asChild>
                     <Link to="/signup" className="cursor-pointer">
                       <UserPlus className="h-4 w-4 mr-2" />
-                      Registro Candidato
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/register-empresa" className="cursor-pointer">
-                      <Building2 className="h-4 w-4 mr-2" />
-                      Registro Empresa
+                      Registro
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

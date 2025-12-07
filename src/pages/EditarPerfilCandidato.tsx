@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, FileText, Save, ArrowLeft, Upload } from "lucide-react";
 import { useCurrentUser } from "../utils/auth";
-import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadProfilePhoto } from "@/services/candidato";
+import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadProfilePhoto, uploadCV } from "@/services/candidato";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
 
@@ -18,6 +18,7 @@ interface ProfileData {
   bio: string;
   ubicacion: string;
   foto_perfil_url: string;
+  cv_url: string;
 }
 
 export default function EditarPerfilCandidato() {
@@ -28,11 +29,13 @@ export default function EditarPerfilCandidato() {
   const [loading, setLoading] = useState(false);
   const [processingCV, setProcessingCV] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingCV, setUploadingCV] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
     titulo: "",
     bio: "",
     ubicacion: "",
     foto_perfil_url: "",
+    cv_url: "",
   });
 
   useEffect(() => {
@@ -51,6 +54,7 @@ export default function EditarPerfilCandidato() {
         bio: data.bio || "",
         ubicacion: data.ubicacion || "",
         foto_perfil_url: data.foto_perfil_url || "",
+        cv_url: data.cv_url || "",
       });
     } catch (error) {
       toast.error("No se pudo cargar el perfil");
@@ -85,14 +89,15 @@ export default function EditarPerfilCandidato() {
     }
   };
 
-  const handleCVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCVParse = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de archivo (imagen)
-    if (!file.type.startsWith("image/")) {
+    // Validar tipo de archivo (imagen o PDF)
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
       toast.error("Archivo no válido", {
-        description: "Por favor sube una imagen de tu CV (JPG, PNG, etc.)",
+        description: "Por favor sube una imagen (JPG, PNG) o PDF de tu CV",
       });
       return;
     }
@@ -122,6 +127,7 @@ export default function EditarPerfilCandidato() {
         bio: updatedProfile.bio || profileData.bio,
         ubicacion: updatedProfile.ubicacion || profileData.ubicacion,
         foto_perfil_url: updatedProfile.foto_perfil_url || profileData.foto_perfil_url,
+        cv_url: profileData.cv_url,
       });
 
       toast.success("¡CV procesado con éxito!", {
@@ -192,6 +198,63 @@ export default function EditarPerfilCandidato() {
     }
   };
 
+  const handleCVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Formato no válido", {
+        description: "Solo se permiten archivos PDF, DOC o DOCX",
+      });
+      return;
+    }
+
+    // Validar tamaño (máx 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Archivo muy grande", {
+        description: "El CV no debe superar los 10MB",
+      });
+      return;
+    }
+
+    try {
+      setUploadingCV(true);
+
+      const reader = new FileReader();
+      const fileDataPromise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const fileData = await fileDataPromise;
+
+      const response = await uploadCV(fileData);
+
+      // Actualizar estado local con nueva URL de CV
+      setProfileData(prev => ({
+        ...prev,
+        cv_url: response.cv_url
+      }));
+
+      toast.success("¡CV subido exitosamente!", {
+        description: "Tu curriculum ha sido guardado",
+      });
+    } catch (error) {
+      console.error("Error al subir CV:", error);
+      toast.error("Error al subir CV", {
+        description: "No se pudo subir el archivo. Intenta nuevamente.",
+      });
+    } finally {
+      setUploadingCV(false);
+    }
+  };
+
   return (
     <>
       <CandidatoNavbar />
@@ -232,8 +295,8 @@ export default function EditarPerfilCandidato() {
                 <Input
                   id="cv-upload"
                   type="file"
-                  accept="image/*"
-                  onChange={handleCVUpload}
+                  accept="image/*,.pdf"
+                  onChange={handleCVParse}
                   disabled={processingCV}
                   className="hidden"
                 />
@@ -363,6 +426,58 @@ export default function EditarPerfilCandidato() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Ingresa la URL de tu foto profesional. Recomendado: 400x400px, formato JPG o PNG.
+                </p>
+              </div>
+
+              {/* Row 4: Curriculum Vitae */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Curriculum Vitae (CV)
+                </Label>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="cv-file-upload" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      disabled={uploadingCV}
+                      asChild
+                      className="w-full"
+                    >
+                      <span className="cursor-pointer gap-2">
+                        {uploadingCV ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Subiendo CV...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4" />
+                            {profileData.cv_url ? 'Reemplazar CV' : 'Subir CV'}
+                          </>
+                        )}
+                      </span>
+                    </Button>
+                  </label>
+                  {profileData.cv_url && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(profileData.cv_url, '_blank')}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ver CV
+                    </Button>
+                  )}
+                </div>
+                <Input
+                  id="cv-file-upload"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleCVUpload}
+                  disabled={uploadingCV}
+                  className="hidden"
+                />
+                <p className="text-xs text-muted-foreground">
+                  PDF, DOC o DOCX. Máximo 10MB. {profileData.cv_url && '✓ CV actual disponible'}
                 </p>
               </div>
             </div>

@@ -7,8 +7,7 @@ import { Chatbot } from "@/components/Chatbot"
 import LandingPage from "@/pages/LandingPage"
 import VacantesPublicas from "@/pages/VacantesPublicas"
 import LoginPage from "@/pages/LoginPage"
-import SignupPage from "@/pages/SignupPage"
-import RegisterEmpresaPage from "@/pages/RegisterEmpresaPage"
+
 import RegisterReclutador from "@/pages/RegisterReclutador"
 import ForgotPassword from "@/pages/ForgotPassword"
 import ResetPassword from "@/pages/ResetPassword"
@@ -28,6 +27,12 @@ import AboutPage from "@/pages/AboutPage"
 import HowItWorksPage from "@/pages/HowItWorksPage"
 import ContactPage from "@/pages/ContactPage"
 import CandidatosPage from "@/pages/CandidatosPage"
+import GoogleAuthCallback from "@/pages/GoogleAuthCallback"
+import SelectUserTypePage from "@/pages/SelectUserTypePage"
+import StepByStepRegister from "@/pages/StepByStepRegister"
+import StepByStepRegisterEmpresa from "@/pages/StepByStepRegisterEmpresa"
+import AnalyticsEmpresa from "@/pages/AnalyticsEmpresa"
+import AdminEmpresa from "@/pages/AdminEmpresa"
 import './App.css'
 
 function App() {
@@ -44,8 +49,12 @@ function App() {
             <Route path="/login" element={<><LandingNavbar /><LoginPage /></>} />
             <Route path="/forgot-password" element={<><LandingNavbar /><ForgotPassword /></>} />
             <Route path="/reset-password" element={<><LandingNavbar /><ResetPassword /></>} />
-            <Route path="/signup" element={<><LandingNavbar /><SignupPage /></>} />
-            <Route path="/register-empresa" element={<><LandingNavbar /><RegisterEmpresaPage /></>} />
+            <Route path="/auth/google/success" element={<GoogleAuthCallback />} />
+            <Route path="/register/candidato/complete" element={<GoogleAuthCallback />} />
+            <Route path="/register/empresa/complete" element={<GoogleAuthCallback />} />
+            <Route path="/signup" element={<><LandingNavbar /><SelectUserTypePage /></>} />
+            <Route path="/signup/candidato" element={<><LandingNavbar /><StepByStepRegister /></>} />
+            <Route path="/register-empresa" element={<><LandingNavbar /><StepByStepRegisterEmpresa /></>} />
             <Route path="/register/reclutador" element={<RegisterReclutador />} />
             <Route path="/dashboard-candidato" element={<DashboardCandidato />} />
             <Route path="/dashboard-empresa" element={<DashboardEmpresa />} />
@@ -61,6 +70,8 @@ function App() {
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/vacante/crear" element={<CrearVacante />} />
             <Route path="/vacante/editar/:id" element={<CrearVacante />} />
+            <Route path="/empresa/:id/analytics" element={<AnalyticsEmpresa />} />
+            <Route path="/admin-empresa" element={<AdminEmpresa />} />
           </Routes>
           <Chatbot />
           <Toaster />
