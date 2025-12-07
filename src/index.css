@@ -144,4 +144,18 @@
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--border)) hsl(var(--muted));
   }
+  
+  /* Animación para barra de progreso */
+  @keyframes progress {
+    0% {
+      width: 0%;
+    }
+    100% {
+      width: 100%;
+    }
+  }
+  
+  .animate-progress {
+    animation: progress 5s linear forwards;
+  }
 }

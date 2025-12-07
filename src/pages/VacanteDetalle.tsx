@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { 
   ArrowLeft, 
   Briefcase, 
@@ -37,6 +38,7 @@ export default function VacanteDetalle() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalPostulaciones, setTotalPostulaciones] = useState(0)
   const [isProcessingMatching, setIsProcessingMatching] = useState(false)
+  const [showMatchingModal, setShowMatchingModal] = useState(false)
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -114,7 +116,17 @@ export default function VacanteDetalle() {
     
     try {
       setIsProcessingMatching(true)
-      await api.post(`/matching/vacante/${id}/process`)
+      setShowMatchingModal(true)
+      
+      // Iniciar el proceso de matching
+      const matchingPromise = api.post(`/matching/vacante/${id}/process`)
+      
+      // Esperar mínimo 5 segundos para la animación
+      await Promise.all([
+        matchingPromise,
+        new Promise(resolve => setTimeout(resolve, 5000))
+      ])
+      
       toast.success('Compatibilidad calculada exitosamente')
       
       // Recargar postulaciones para ver los nuevos scores
@@ -127,6 +139,7 @@ export default function VacanteDetalle() {
       toast.error('Error al calcular la compatibilidad')
     } finally {
       setIsProcessingMatching(false)
+      setShowMatchingModal(false)
     }
   }
 
@@ -426,6 +439,38 @@ export default function VacanteDetalle() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Modal de procesamiento de matching */}
+      <Dialog open={showMatchingModal} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" showCloseButton={false}>
+          <div className="flex flex-col items-center justify-center py-8 space-y-6">
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping">
+                <Sparkles className="h-16 w-16 text-primary opacity-75" />
+              </div>
+              <Sparkles className="h-16 w-16 text-primary animate-pulse" />
+            </div>
+            
+            <div className="text-center space-y-2">
+              <h3 className="text-2xl font-bold">Calculando Compatibilidad</h3>
+              <p className="text-muted-foreground">
+                Analizando perfiles y habilidades...
+              </p>
+            </div>
+            
+            <div className="w-full max-w-xs">
+              <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                <div className="h-full bg-primary animate-progress"></div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+              <span>Esto puede tomar unos segundos...</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
