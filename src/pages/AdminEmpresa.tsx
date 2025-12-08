@@ -16,13 +16,7 @@ import {
   Loader2,
   UserPlus,
   Users,
-  CheckCircle2,
-  Clock,
-  X,
   Shield,
-  TrendingUp,
-  Calendar,
-  UserCheck,
   AlertCircle,
   RefreshCw,
   Building2,
@@ -68,14 +62,6 @@ interface Empresa {
   descripcion: string | null
 }
 
-interface Invitacion {
-  id: string
-  email: string
-  estado: "PENDIENTE" | "ACEPTADA" | "EXPIRADA"
-  fechaEnvio: string
-  fechaExpiracion: string
-}
-
 interface Reclutador {
   id: string
   usuario: {
@@ -99,7 +85,6 @@ export default function AdminEmpresa() {
   const [saving, setSaving] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [email, setEmail] = useState("")
-  const [invitaciones, setInvitaciones] = useState<Invitacion[]>([])
   const [reclutadores, setReclutadores] = useState<Reclutador[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedInvitacion, setSelectedInvitacion] = useState<string | null>(null)
@@ -143,9 +128,6 @@ export default function AdminEmpresa() {
     try {
       setRefreshing(true)
       
-      // Llamada al endpoint del dashboard de empresa (para estadísticas e invitaciones)
-      const { data } = await api.get(`/empresas/${empresaId}/dashboard`)
-      
       // Cargar información de la empresa
       const empresaData = await getEmpresaById(empresaId)
       setEmpresa(empresaData)
@@ -172,24 +154,6 @@ export default function AdminEmpresa() {
       }))
 
       setReclutadores(reclutadoresTransformados)
-      
-      // Las invitaciones pendientes por ahora solo tenemos el contador
-      // Crear mock data basado en el contador de invitaciones pendientes
-      const numInvitaciones = data.estadisticas?.invitacionesPendientes || 0
-      const mockInvitaciones: Invitacion[] = []
-      
-      // Si hay invitaciones pendientes, crear entradas mock
-      for (let i = 0; i < numInvitaciones; i++) {
-        mockInvitaciones.push({
-          id: `pending-${i}`,
-          email: `invitacion-${i + 1}@pendiente.com`,
-          estado: "PENDIENTE",
-          fechaEnvio: new Date().toISOString(),
-          fechaExpiracion: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-        })
-      }
-      
-      setInvitaciones(mockInvitaciones)
       
     } catch (error) {
       console.error('Error:', error)
@@ -268,49 +232,6 @@ export default function AdminEmpresa() {
     }
   }
 
-  const getEstadoBadge = (estado: string) => {
-    const variants = {
-      PENDIENTE: { 
-        variant: "outline" as const, 
-        icon: Clock, 
-        text: "Pendiente",
-        className: "border-yellow-500 text-yellow-700 dark:text-yellow-400"
-      },
-      ACEPTADA: { 
-        variant: "outline" as const, 
-        icon: CheckCircle2, 
-        text: "Aceptada",
-        className: "border-green-500 text-green-700 dark:text-green-400"
-      },
-      EXPIRADA: { 
-        variant: "outline" as const, 
-        icon: X, 
-        text: "Expirada",
-        className: "border-red-500 text-red-700 dark:text-red-400"
-      }
-    }
-    const config = variants[estado as keyof typeof variants] || variants.PENDIENTE
-    const Icon = config.icon
-    return (
-      <Badge variant={config.variant} className={`gap-1.5 ${config.className}`}>
-        <Icon className="h-3 w-3" />
-        {config.text}
-      </Badge>
-    )
-  }
-
-  const stats = {
-    totalReclutadores: reclutadores.length,
-    pendientes: invitaciones.filter(i => i.estado === "PENDIENTE").length,
-    aceptadas: invitaciones.filter(i => i.estado === "ACEPTADA").length,
-    thisMonth: reclutadores.filter(r => {
-      const registroDate = new Date(r.fechaRegistro)
-      const now = new Date()
-      return registroDate.getMonth() === now.getMonth() && 
-             registroDate.getFullYear() === now.getFullYear()
-    }).length
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <EmpresaNavbar />
@@ -342,84 +263,6 @@ export default function AdminEmpresa() {
                 Actualizar
               </Button>
             </div>
-
-            {/* Cards de Estadísticas Mejoradas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border-l-4 border-l-primary bg-gradient-to-br from-primary/5 to-transparent">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total Reclutadores
-                  </CardTitle>
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <Users className="h-4 w-4 text-primary" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stats.totalReclutadores}</div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-600" />
-                    <p className="text-xs text-muted-foreground">
-                      {stats.thisMonth} nuevos este mes
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-yellow-500 bg-gradient-to-br from-yellow-500/5 to-transparent">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Invitaciones Pendientes
-                  </CardTitle>
-                  <div className="p-2 bg-yellow-500/10 rounded-full">
-                    <Clock className="h-4 w-4 text-yellow-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stats.pendientes}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Esperando aceptación
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-green-500 bg-gradient-to-br from-green-500/5 to-transparent">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Invitaciones Aceptadas
-                  </CardTitle>
-                  <div className="p-2 bg-green-500/10 rounded-full">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{stats.aceptadas}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Últimos 30 días
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-500/5 to-transparent">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Tasa de Aceptación
-                  </CardTitle>
-                  <div className="p-2 bg-blue-500/10 rounded-full">
-                    <UserCheck className="h-4 w-4 text-blue-600" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {invitaciones.length > 0 
-                      ? Math.round((stats.aceptadas / invitaciones.length) * 100)
-                      : 0}%
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    De todas las invitaciones
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
           </div>
 
           {/* Tabs para diferentes secciones */}
@@ -438,7 +281,7 @@ export default function AdminEmpresa() {
             {/* Tab: Invitar Nuevo Reclutador */}
             <TabsContent value="overview" className="space-y-6">
               <Card className="border-2">
-                <CardHeader className="bg-muted/50">
+                <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary rounded-lg">
                       <Mail className="h-5 w-5 text-primary-foreground" />
@@ -497,7 +340,6 @@ export default function AdminEmpresa() {
                         <ul className="space-y-1 text-blue-700 dark:text-blue-300">
                           <li>• El reclutador recibirá un enlace único de registro</li>
                           <li>• La invitación expira automáticamente en 7 días</li>
-                          <li>• Podrás gestionar todas las invitaciones desde este panel</li>
                         </ul>
                       </div>
                     </div>
@@ -506,35 +348,7 @@ export default function AdminEmpresa() {
               </Card>
 
               {/* Resumen Rápido */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      Invitaciones Recientes
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {invitaciones.slice(0, 3).length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No hay invitaciones recientes</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {invitaciones.slice(0, 3).map((inv) => (
-                          <div key={inv.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{inv.email}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(inv.fechaEnvio).toLocaleDateString('es-ES')}
-                              </p>
-                            </div>
-                            {getEstadoBadge(inv.estado)}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
+              <div className="grid grid-cols-1 gap-4">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -574,7 +388,7 @@ export default function AdminEmpresa() {
             {/* Tab: Configuración de Empresa */}
             <TabsContent value="empresa" className="space-y-6">
               <Card className="border-2">
-                <CardHeader className="bg-muted/50">
+                <CardHeader >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-primary rounded-lg">
@@ -699,7 +513,7 @@ export default function AdminEmpresa() {
 
               {/* Lista de Reclutadores con edición */}
               <Card>
-                <CardHeader className="bg-muted/50">
+                <CardHeader >
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                       <Users className="h-5 w-5 text-blue-500" />

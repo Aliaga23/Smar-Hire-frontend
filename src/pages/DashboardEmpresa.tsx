@@ -133,7 +133,8 @@ export default function DashboardEmpresa() {
       // Recargar vacantes
       if (empresaId) {
         const data = await getVacantes({ empresaId })
-        setVacantes(data)
+        const vacantesData = Array.isArray(data) ? data : data.data || []
+        setVacantes(vacantesData)
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al eliminar la vacante')
@@ -148,7 +149,8 @@ export default function DashboardEmpresa() {
       // Recargar vacantes
       if (empresaId) {
         const data = await getVacantes({ empresaId })
-        setVacantes(data)
+        const vacantesData = Array.isArray(data) ? data : data.data || []
+        setVacantes(vacantesData)
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al cambiar el estado')
@@ -249,9 +251,7 @@ export default function DashboardEmpresa() {
                     Gestiona y monitorea el progreso de tus ofertas
                   </CardDescription>
                 </div>
-                <Button variant="ghost" size="sm" className="gap-1">
-                  Ver todas
-                </Button>
+             
               </div>
             </CardHeader>
             <CardContent>
@@ -274,12 +274,12 @@ export default function DashboardEmpresa() {
                       </div>
                     ))}
                   </>
-                ) : vacantes.length === 0 ? (
+                ) : !Array.isArray(vacantes) || vacantes.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No hay vacantes activas
                   </div>
                 ) : (
-                  vacantes.slice(0, 3).map((vacante) => (
+                  vacantes.map((vacante) => (
                     <div
                       key={vacante.id}
                       className="group p-4 border rounded-lg hover:border-primary hover:shadow-md transition-all"
