@@ -113,10 +113,11 @@ export default function StepByStepRegister() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de archivo (imagen)
-    if (!file.type.startsWith("image/")) {
+    // Validar tipo de archivo (imagen o PDF)
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
       toast.error("Archivo no válido", {
-        description: "Por favor sube una imagen de tu CV (JPG, PNG, etc.)",
+        description: "Por favor sube una imagen (JPG, PNG) o PDF de tu CV",
       });
       return;
     }
@@ -556,7 +557,7 @@ export default function StepByStepRegister() {
                           <Input
                             id="cv-upload-step"
                             type="file"
-                            accept="image/*"
+                            accept="image/*,.pdf"
                             onChange={handleCVUpload}
                             disabled={processingCV}
                             className="hidden"
