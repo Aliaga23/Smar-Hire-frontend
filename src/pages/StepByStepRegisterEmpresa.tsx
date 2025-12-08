@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { 
   Building2, 
@@ -21,7 +20,6 @@ import {
   Check,
   User
 } from "lucide-react"
-import GoogleAuthButton from "@/components/GoogleAuthButton"
 import { registerEmpresa, completeEmpresaOAuth } from '@/services/auth'
 
 interface EmpresaStepData {
@@ -499,18 +497,6 @@ export default function StepByStepRegisterEmpresa() {
                   </Button>
                 )}
               </div>
-
-              {currentStep === 2 && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <div className="text-center text-sm text-muted-foreground">
-                      O completa con Google
-                    </div>
-                    <GoogleAuthButton type="register" userType="empresa" />
-                  </div>
-                </>
-              )}
             </div>
           </CardContent>
         </Card>

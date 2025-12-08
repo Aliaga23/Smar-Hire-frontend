@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { 
   User, 
@@ -24,7 +23,6 @@ import {
   FileText,
   Sparkles
 } from "lucide-react"
-import GoogleAuthButton from "@/components/GoogleAuthButton"
 import { registerCandidato, completeCandidatoOAuth } from "@/services/auth"
 import { parseCvWithAI } from "@/services/candidato"
 
@@ -660,18 +658,6 @@ export default function StepByStepRegister() {
                   </Button>
                 )}
               </div>
-
-              {currentStep === 1 && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <div className="text-center text-sm text-muted-foreground">
-                      O regístrate con
-                    </div>
-                    <GoogleAuthButton type="register" userType="candidato" />
-                  </div>
-                </>
-              )}
             </div>
           </CardContent>
         </Card>
