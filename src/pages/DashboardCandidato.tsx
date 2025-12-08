@@ -8,11 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { CandidatoNavbar } from "../components/CandidatoNavbar"
 import { 
-  User, 
   Briefcase, 
   GraduationCap, 
   Award, 
-  Globe, 
   MapPin, 
   Calendar,
   Building2,
@@ -21,8 +19,6 @@ import {
   XCircle,
   Search,
   FileText,
-  TrendingUp,
-  Edit,
   Settings,
   Lightbulb,
   Plus,
@@ -353,13 +349,6 @@ export default function DashboardCandidato() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
-              <Link to="/editar-perfil" className="gap-2">
-                <Edit className="h-4 w-4" />
-                <span className="hidden sm:inline">Editar Perfil</span>
-                <span className="sm:hidden">Perfil</span>
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
               <Link to="/gestionar-habilidades" className="gap-2">
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">Gestionar Habilidades</span>
@@ -376,15 +365,14 @@ export default function DashboardCandidato() {
             <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
               <Link to="/mis-recomendaciones" className="gap-2">
                 <Lightbulb className="h-4 w-4" />
-                <span className="hidden lg:inline">Recomendaciones IA</span>
-                <span className="lg:hidden">IA</span>
+                Recomendaciones
               </Link>
             </Button>
           </div>
         </div>
 
         {/* Estadísticas rápidas */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -429,33 +417,14 @@ export default function DashboardCandidato() {
               </p>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Perfil
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{habilidadPromedio}%</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Completitud del perfil
-              </p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Tabs principales */}
         <Tabs defaultValue="postulaciones" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="postulaciones" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Mis Postulaciones</span>
               <span className="sm:hidden">Postulaciones</span>
-            </TabsTrigger>
-            <TabsTrigger value="perfil" className="text-xs sm:text-sm">
-              <span className="hidden sm:inline">Mi Perfil</span>
-              <span className="sm:hidden">Perfil</span>
             </TabsTrigger>
             <TabsTrigger value="habilidades" className="text-xs sm:text-sm">Habilidades</TabsTrigger>
             <TabsTrigger value="experiencia" className="text-xs sm:text-sm">Experiencia</TabsTrigger>
@@ -544,75 +513,6 @@ export default function DashboardCandidato() {
                 ))}
               </div>
             )}
-          </TabsContent>
-
-          {/* Tab: Perfil */}
-          <TabsContent value="perfil" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Información Personal
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Biografía</label>
-                  <p className="mt-1 text-sm">
-                    {profile.bio || 'No has agregado una biografía aún'}
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Correo</label>
-                    <p className="mt-1 text-sm break-all">{profile.usuario.correo}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Teléfono</label>
-                    <p className="mt-1 text-sm">{profile.usuario.telefono || 'No especificado'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Ubicación</label>
-                    <p className="mt-1 text-sm">{profile.ubicacion || 'No especificada'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Fecha de Nacimiento</label>
-                    <p className="mt-1 text-sm">
-                      {profile.usuario.fecha_nacimiento 
-                        ? formatDate(profile.usuario.fecha_nacimiento)
-                        : 'No especificada'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Idiomas */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5" />
-                  Idiomas ({profile.lenguajesCandidato.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {profile.lenguajesCandidato.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No has agregado idiomas aún</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {profile.lenguajesCandidato.map((lenguaje) => (
-                      <div key={lenguaje.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{lenguaje.lenguaje.nombre}</span>
-                          <Badge variant="secondary">{getNivelLabel(lenguaje.nivel)}</Badge>
-                        </div>
-                        <Progress value={lenguaje.nivel * 10} className="h-2" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Tab: Habilidades */}

@@ -215,3 +215,9 @@ export const uploadCV = async (fileData: string) => {
   const response = await api.post('/candidatos/profile/upload-cv', { fileData })
   return response.data
 }
+
+// Eliminar perfil del candidato
+export const deleteProfile = async () => {
+  const response = await api.delete('/candidatos/profile')
+  return response.data
+}

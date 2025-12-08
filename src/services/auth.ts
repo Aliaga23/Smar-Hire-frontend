@@ -90,7 +90,7 @@ export const resetPassword = async (token: string, nuevaPassword: string) => {
 
 // Google OAuth - obtener URL de autorización
 export const getGoogleAuthUrl = (userType: 'candidato' | 'empresa' = 'candidato') => {
-  const baseUrl = 'http://localhost:3000/api/auth/google'
+  const baseUrl = 'https://api.sw2ficct.lat/api/auth/google'
   return userType === 'candidato' 
     ? `${baseUrl}/candidato`
     : `${baseUrl}/empresa`

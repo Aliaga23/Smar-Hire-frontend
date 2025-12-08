@@ -7,11 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, FileText, Save, ArrowLeft, Upload } from "lucide-react";
+import { Loader2, FileText, Save, ArrowLeft, Upload, Trash2 } from "lucide-react";
 import { useCurrentUser } from "../utils/auth";
-import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadProfilePhoto, uploadCV } from "@/services/candidato";
+import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadProfilePhoto, uploadCV, deleteProfile } from "@/services/candidato";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/contexts/ProfileContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileData {
   titulo: string;
@@ -23,13 +33,15 @@ interface ProfileData {
 
 export default function EditarPerfilCandidato() {
   const navigate = useNavigate();
-  const { isAuthenticated, isCandidato } = useCurrentUser();
+  const { isAuthenticated, isCandidato, logout } = useCurrentUser();
   const { updateFotoPerfil } = useProfile();
 
   const [loading, setLoading] = useState(false);
   const [processingCV, setProcessingCV] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCV, setUploadingCV] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
     titulo: "",
     bio: "",
@@ -86,6 +98,23 @@ export default function EditarPerfilCandidato() {
       toast.error("No se pudo actualizar el perfil");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    setDeleting(true);
+    try {
+      await deleteProfile();
+      toast.success("Cuenta eliminada", {
+        description: "Tu perfil y todos tus datos han sido eliminados",
+      });
+      logout();
+      navigate("/");
+    } catch (error) {
+      toast.error("No se pudo eliminar la cuenta");
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -305,7 +334,7 @@ export default function EditarPerfilCandidato() {
             {processingCV && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3 bg-muted/50 p-3 rounded-md">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>GPT-4 Vision está analizando tu CV...</span>
+                <span>Nuestro OCR está analizando tu CV...</span>
               </div>
             )}
           </CardHeader>
@@ -513,7 +542,76 @@ export default function EditarPerfilCandidato() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Zona de peligro - Eliminar cuenta */}
+        <Card className="border-destructive/50">
+          <CardHeader>
+            <CardTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="h-5 w-5" />
+              Zona de Peligro
+            </CardTitle>
+            <CardDescription>
+              Acciones irreversibles para tu cuenta
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Eliminar cuenta</p>
+                <p className="text-sm text-muted-foreground">
+                  Esta acción eliminará permanentemente tu perfil, postulaciones, educación, experiencia y todos tus datos.
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar cuenta
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </main>
+
+      {/* Dialog de confirmación para eliminar cuenta */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro de eliminar tu cuenta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán permanentemente:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Tu perfil y datos personales</li>
+                <li>Todas tus postulaciones</li>
+                <li>Tu historial de educación y experiencia</li>
+                <li>Tus habilidades e idiomas registrados</li>
+                <li>Tu CV y foto de perfil</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProfile}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Sí, eliminar mi cuenta
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -37,3 +37,9 @@ export const updateEmpresaInfo = async (empresaId: string, data: any) => {
   const response = await api.patch(`/empresas/${empresaId}/info`, data)
   return response.data
 }
+
+// Activar/Desactivar reclutador
+export const toggleReclutadorEstado = async (reclutadorId: string) => {
+  const response = await api.patch(`/empresas/reclutadores/${reclutadorId}/toggle-estado`)
+  return response.data
+}

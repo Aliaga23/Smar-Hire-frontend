@@ -567,7 +567,7 @@ export default function StepByStepRegister() {
                         {processingCV && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                             <div className="w-3 h-3 border border-primary border-r-transparent rounded-full animate-spin"></div>
-                            <span>GPT-4 Vision está analizando tu CV...</span>
+                            <span>Nuestro OCR está analizando tu CV...</span>
                           </div>
                         )}
                       </div>

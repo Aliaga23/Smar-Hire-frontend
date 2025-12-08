@@ -52,9 +52,9 @@ export default function MisRecomendaciones() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold">Recomendaciones Personalizadas</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Recomendaciones</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">
-              Mejora tus habilidades con cursos sugeridos por IA
+              Mejora tus habilidades con cursos sugeridos
             </p>
           </div>
           <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => navigate("/dashboard-candidato")}>
@@ -67,7 +67,7 @@ export default function MisRecomendaciones() {
         <Alert className="mb-4 sm:mb-6 border-blue-200 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
           <AlertDescription className="text-xs sm:text-sm text-blue-900">
-            Estas recomendaciones se generan automáticamente con IA cuando un reclutador ejecuta el algoritmo de matching para una vacante.
+            Estas recomendaciones se generan automáticamente cuando un reclutador ejecuta el matching para una vacante.
             Los cursos sugeridos te ayudarán a cubrir las habilidades que necesitas desarrollar.
           </AlertDescription>
         </Alert>

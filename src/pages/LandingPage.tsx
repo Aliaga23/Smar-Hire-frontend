@@ -421,7 +421,7 @@ export default function LandingPage() {
                     </div>
                     
                     <Button className="w-full group-hover:shadow-lg transition-shadow mt-5" size="lg" asChild>
-                      <Link to={`/vacantes/${job.id}`}>Ver detalles y aplicar</Link>
+                      <Link to="/login">Ver detalles y aplicar</Link>
                     </Button>
                   </CardContent>
                 </Card>

@@ -58,7 +58,8 @@ import {
 } from "@/components/ui/dialog"
 
 import { Textarea } from "@/components/ui/textarea"
-import { updateReclutador, updateEmpresaInfo, getEmpresaById } from "@/services/empresa"
+import { Switch } from "@/components/ui/switch"
+import { updateReclutador, updateEmpresaInfo, getEmpresaById, toggleReclutadorEstado, getReclutadores } from "@/services/empresa"
 
 interface Empresa {
   id: string
@@ -85,6 +86,7 @@ interface Reclutador {
   }
   posicion?: string
   fechaRegistro: string
+  activo: boolean
   _count?: {
     vacantes: number
   }
@@ -141,7 +143,7 @@ export default function AdminEmpresa() {
     try {
       setRefreshing(true)
       
-      // Llamada al endpoint del dashboard de empresa
+      // Llamada al endpoint del dashboard de empresa (para estadísticas e invitaciones)
       const { data } = await api.get(`/empresas/${empresaId}/dashboard`)
       
       // Cargar información de la empresa
@@ -153,23 +155,27 @@ export default function AdminEmpresa() {
         descripcion: empresaData.descripcion || ""
       })
       
-      // Transformar los datos del backend al formato del frontend
-      const reclutadoresTransformados: Reclutador[] = data.reclutadores.map((rec: any) => ({
+      // Cargar reclutadores desde el endpoint específico (incluye activo y _count.vacantes)
+      const reclutadoresData = await getReclutadores(empresaId)
+      const reclutadoresTransformados: Reclutador[] = reclutadoresData.map((rec: any) => ({
         id: rec.id,
         usuario: {
+          id: rec.usuario?.id || rec.usuarioId,
           name: rec.usuario.name,
           lastname: rec.usuario.lastname,
           correo: rec.usuario.correo,
         },
         posicion: rec.posicion || "Reclutador",
-        fechaRegistro: rec.usuario.creado_en,
+        fechaRegistro: rec.usuario?.creado_en || rec.fechaRegistro,
+        activo: rec.activo ?? true,
+        _count: rec._count
       }))
 
       setReclutadores(reclutadoresTransformados)
       
       // Las invitaciones pendientes por ahora solo tenemos el contador
       // Crear mock data basado en el contador de invitaciones pendientes
-      const numInvitaciones = data.estadisticas.invitacionesPendientes || 0
+      const numInvitaciones = data.estadisticas?.invitacionesPendientes || 0
       const mockInvitaciones: Invitacion[] = []
       
       // Si hay invitaciones pendientes, crear entradas mock
@@ -247,6 +253,18 @@ export default function AdminEmpresa() {
       toast.error("Error al cancelar la invitación")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleToggleReclutador = async (reclutadorId: string, currentStatus: boolean) => {
+    try {
+      await toggleReclutadorEstado(reclutadorId)
+      setReclutadores(prev => 
+        prev.map(r => r.id === reclutadorId ? { ...r, activo: !currentStatus } : r)
+      )
+      toast.success(currentStatus ? "Reclutador desactivado" : "Reclutador activado")
+    } catch (error: any) {
+      toast.error(error.message || "Error al cambiar el estado del reclutador")
     }
   }
 
@@ -718,6 +736,7 @@ export default function AdminEmpresa() {
                             <TableHead>Correo</TableHead>
                             <TableHead>Posición</TableHead>
                             <TableHead className="text-center">Vacantes</TableHead>
+                            <TableHead className="text-center">Estado</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -740,6 +759,17 @@ export default function AdminEmpresa() {
                                   <Briefcase className="h-3 w-3 mr-1" />
                                   {reclutador._count?.vacantes || 0}
                                 </Badge>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <Switch
+                                    checked={reclutador.activo}
+                                    onCheckedChange={() => handleToggleReclutador(reclutador.id, reclutador.activo)}
+                                  />
+                                  <span className={`text-xs ${reclutador.activo ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    {reclutador.activo ? 'Activo' : 'Inactivo'}
+                                  </span>
+                                </div>
                               </TableCell>
                               <TableCell className="text-right">
                                 <Button
