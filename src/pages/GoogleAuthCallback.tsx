@@ -193,8 +193,10 @@ export default function GoogleAuthCallback() {
         
         if (userRole === 'candidato') {
           navigate('/dashboard-candidato', { replace: true })
-        } else if (userRole === 'reclutador' || userRole === 'admin-empresa') {
+        } else if (userRole === 'admin-empresa') {
           navigate('/dashboard-empresa', { replace: true })
+        } else if (userRole === 'reclutador') {
+          navigate('/dashboard-reclutador', { replace: true })
         } else {
           navigate('/dashboard-candidato', { replace: true })
         }

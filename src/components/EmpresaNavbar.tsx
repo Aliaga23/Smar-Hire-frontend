@@ -1,7 +1,6 @@
-import { Building2, Search, User, LogOut, Settings, Users, Briefcase } from "lucide-react"
+import { Building2,  User, LogOut, Settings,  Briefcase } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,15 +50,9 @@ export function EmpresaNavbar() {
                 Vacantes
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/candidatos">
-                <Users className="h-4 w-4 mr-2" />
-                Candidatos
-              </Link>
-            </Button>
             {isEmpresaAdmin && (
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/admin">
+                <Link to="/admin-empresa">
                   <Settings className="h-4 w-4 mr-2" />
                   Administración
                 </Link>
@@ -70,16 +63,6 @@ export function EmpresaNavbar() {
 
         {/* Búsqueda y acciones */}
         <div className="flex items-center gap-2">
-          {/* Barra de búsqueda */}
-          <div className="hidden lg:flex items-center relative w-64">
-            <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar candidatos..."
-              className="pl-8 h-9"
-            />
-          </div>
-
           {/* Theme toggle */}
           <ModeToggle />
 
@@ -119,14 +102,6 @@ export function EmpresaNavbar() {
                   Mi Perfil
                 </Link>
               </DropdownMenuItem>
-              {isEmpresaAdmin && (
-                <DropdownMenuItem asChild>
-                  <Link to="/admin" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Panel de Administración
-                  </Link>
-                </DropdownMenuItem>
-              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />

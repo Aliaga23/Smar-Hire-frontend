@@ -15,7 +15,6 @@ import {
   Phone, 
   Calendar, 
   Briefcase,
-  Building2,
   Save,
   Loader2
 } from "lucide-react"
@@ -288,51 +287,6 @@ export default function PerfilReclutador() {
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Información de la Empresa */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Empresa
-                  </CardTitle>
-                  <CardDescription>
-                    Información de tu empresa
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Nombre de la Empresa</Label>
-                      <Input
-                        value={profile.empresa.name}
-                        disabled
-                        className="bg-muted"
-                      />
-                    </div>
-
-                    {profile.empresa.area && (
-                      <div className="space-y-2">
-                        <Label>Área/Industria</Label>
-                        <Input
-                          value={profile.empresa.area}
-                          disabled
-                          className="bg-muted"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {profile.empresa.descripcion && (
-                    <div className="space-y-2">
-                      <Label>Descripción</Label>
-                      <p className="text-sm text-muted-foreground p-3 border rounded-lg bg-muted/50">
-                        {profile.empresa.descripcion}
-                      </p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 

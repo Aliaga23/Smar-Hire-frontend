@@ -60,11 +60,16 @@ export default function LoginPage() {
       
       toast.success(`Bienvenido ${isAdmin ? 'Administrador' : response.tipoUsuario === 'candidato' ? 'Candidato' : 'Reclutador'}`)
       
-      // Redirigir según el tipo de usuario
+      // Redirigir según el tipo de usuario y rol
       if (response.tipoUsuario === 'candidato') {
         navigate('/dashboard-candidato')
       } else if (response.tipoUsuario === 'reclutador') {
-        navigate('/dashboard-empresa')
+        // Admin de empresa va a dashboard-empresa, reclutador normal va a dashboard-reclutador
+        if (isAdmin) {
+          navigate('/dashboard-empresa')
+        } else {
+          navigate('/dashboard-reclutador')
+        }
       }
       
     } catch (error: any) {

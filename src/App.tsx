@@ -18,7 +18,6 @@ import VacanteDetalleRouter from "@/pages/VacanteDetalleRouter"
 import PerfilCandidato from "@/pages/PerfilCandidato"
 import PerfilReclutador from "@/pages/PerfilReclutador"
 import CrearVacante from "@/pages/CrearVacante"
-import AdminPanel from "@/pages/AdminPanel"
 import EditarPerfilCandidato from "@/pages/EditarPerfilCandidato"
 import GestionarHabilidades from "@/pages/GestionarHabilidades"
 import VacantesDisponibles from "@/pages/VacantesDisponibles"
@@ -26,7 +25,6 @@ import MisRecomendaciones from "@/pages/MisRecomendaciones"
 import AboutPage from "@/pages/AboutPage"
 import HowItWorksPage from "@/pages/HowItWorksPage"
 import ContactPage from "@/pages/ContactPage"
-import CandidatosPage from "@/pages/CandidatosPage"
 import GoogleAuthCallback from "@/pages/GoogleAuthCallback"
 import SelectUserTypePage from "@/pages/SelectUserTypePage"
 import StepByStepRegister from "@/pages/StepByStepRegister"
@@ -59,7 +57,6 @@ function App() {
             <Route path="/dashboard-candidato" element={<DashboardCandidato />} />
             <Route path="/dashboard-empresa" element={<DashboardEmpresa />} />
             <Route path="/dashboard-reclutador" element={<DashboardReclutador />} />
-            <Route path="/candidatos" element={<CandidatosPage />} />
             <Route path="/editar-perfil" element={<EditarPerfilCandidato />} />
             <Route path="/gestionar-habilidades" element={<GestionarHabilidades />} />
             <Route path="/vacantes-disponibles" element={<VacantesDisponibles />} />
@@ -67,11 +64,11 @@ function App() {
             <Route path="/vacante/:id" element={<VacanteDetalleRouter />} />
             <Route path="/perfil-candidato/:id" element={<PerfilCandidato />} />
             <Route path="/perfil" element={<PerfilReclutador />} />
-            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin" element={<AdminEmpresa />} />
+            <Route path="/admin-empresa" element={<AdminEmpresa />} />
             <Route path="/vacante/crear" element={<CrearVacante />} />
             <Route path="/vacante/editar/:id" element={<CrearVacante />} />
             <Route path="/empresa/:id/analytics" element={<AnalyticsEmpresa />} />
-            <Route path="/admin-empresa" element={<AdminEmpresa />} />
           </Routes>
           <Chatbot />
           <Toaster />

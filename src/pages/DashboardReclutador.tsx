@@ -29,7 +29,7 @@ import { getVacantes, deleteVacante, updateEstadoVacante, type Vacante } from "@
 import { toast } from "sonner"
 
 export default function DashboardReclutador() {
-  const { isAuthenticated, isReclutador, empresaId } = useCurrentUser()
+  const { isAuthenticated, isReclutador, empresaId, user } = useCurrentUser()
   const navigate = useNavigate()
   const [vacantes, setVacantes] = useState<Vacante[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -42,14 +42,21 @@ export default function DashboardReclutador() {
     return <Navigate to="/dashboard-candidato" replace />
   }
 
+  const reclutadorId = user?.reclutador?.id
+
   useEffect(() => {
     const fetchVacantes = async () => {
-      if (!empresaId) return
+      if (!empresaId) {
+        setIsLoading(false)
+        return
+      }
       
       try {
         setIsLoading(true)
-        const data = await getVacantes({ empresaId })
-        setVacantes(data)
+        const response = await getVacantes({ empresaId })
+        const data = Array.isArray(response) ? response : (response.data || [])
+        const filteredData = data.filter((v: Vacante) => v.reclutadorId === reclutadorId)
+        setVacantes(filteredData)
       } catch (error) {
         console.error('Error al cargar vacantes:', error)
         toast.error('Error al cargar las vacantes')
@@ -59,7 +66,7 @@ export default function DashboardReclutador() {
     }
 
     fetchVacantes()
-  }, [empresaId])
+  }, [empresaId, reclutadorId])
 
   const stats = useMemo(() => ({
     vacantesActivas: vacantes.filter(v => v.estado === 'ABIERTA').length,

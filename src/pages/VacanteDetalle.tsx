@@ -29,7 +29,7 @@ import {
 export default function VacanteDetalle() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { isAuthenticated, isReclutador } = useCurrentUser()
+  const { isAuthenticated, isReclutador, isEmpresaAdmin } = useCurrentUser()
   const [vacante, setVacante] = useState<Vacante | null>(null)
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -164,7 +164,7 @@ export default function VacanteDetalle() {
           <Button 
             variant="ghost" 
             size="icon"
-            onClick={() => navigate('/dashboard-empresa')}
+            onClick={() => navigate(isEmpresaAdmin ? '/dashboard-empresa' : '/dashboard-reclutador')}
             className="flex-shrink-0"
           >
             <ArrowLeft className="h-5 w-5" />
