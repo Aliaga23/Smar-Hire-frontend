@@ -317,7 +317,7 @@ export default function EditarPerfilCandidato() {
                   <Button variant="outline" size="sm" disabled={processingCV} asChild>
                     <span className="cursor-pointer">
                       <FileText className="h-4 w-4 mr-2" />
-                      {processingCV ? "Procesando..." : "Cargar CV con IA"}
+                      {processingCV ? "Procesando..." : "Cargar CV con OCR"}
                     </span>
                   </Button>
                 </label>
