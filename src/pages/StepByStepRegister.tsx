@@ -524,13 +524,13 @@ export default function StepByStepRegister() {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold mb-2 flex items-center gap-2">
-                      Cargar con IA y OCR
+                      Cargar con OCR
                       <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                        IA
+                        OCR
                       </Badge>
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Sube tu CV y nuestra IA extraerá automáticamente tu información
+                      Sube tu CV y nuestro OCR extraerá automáticamente tu información
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="outline">Rápido</Badge>
@@ -550,7 +550,7 @@ export default function StepByStepRegister() {
                             >
                               <span>
                                 <FileText className="h-4 w-4 mr-2" />
-                                {processingCV ? "Procesando..." : "Cargar CV con IA"}
+                                {processingCV ? "Procesando..." : "Cargar CV con OCR"}
                               </span>
                             </Button>
                           </label>
