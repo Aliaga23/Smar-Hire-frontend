@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://api.sw2ficct.lat/api',
+  baseURL: 'https://smarthiresolutions-backend-production.up.railway.app/api',
   headers: {
     'Content-Type': 'application/json',
   },

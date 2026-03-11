@@ -80,11 +80,16 @@ export interface Postulacion {
     reclutadorId: string
     modalidadId: string
     horarioId: string
+    categoriaId?: string
     empresa?: {
       id: string
       name: string
       descripcion?: string
       area?: string
+    }
+    categoria?: {
+      id: string
+      nombre: string
     }
     modalidad?: {
       id: string

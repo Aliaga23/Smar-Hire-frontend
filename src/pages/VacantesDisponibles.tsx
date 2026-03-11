@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { CandidatoNavbar } from "@/components/CandidatoNavbar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Briefcase, MapPin, DollarSign, Clock, Building2, Search, ArrowLeft, Loader2, CheckCircle2, Filter } from "lucide-react"
+import { Briefcase, MapPin, DollarSign, Building2, Search, ArrowLeft, Loader2, CheckCircle2, Filter } from "lucide-react"
 import { getVacantes, type Vacante } from "@/services/vacante"
 import { createPostulacion, getMisPostulaciones, type Postulacion } from "@/services/postulacion"
 import { toast } from "sonner"
@@ -88,7 +87,7 @@ export default function VacantesDisponibles() {
   return (
     <>
       <CandidatoNavbar />
-      <main className="container mx-auto p-6 min-h-screen">
+      <main className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -191,172 +190,160 @@ export default function VacantesDisponibles() {
 
         {/* Loading */}
         {loading && (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="space-y-1">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="border-b border-border py-4 px-5">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-start gap-2 flex-wrap">
+                      <div className="h-6 w-48 bg-muted rounded-md animate-pulse"></div>
+                      <div className="h-5 w-16 bg-muted rounded-md animate-pulse"></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-muted rounded-sm animate-pulse"></div>
+                      <div className="h-4 w-32 bg-muted rounded-sm animate-pulse"></div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-full bg-muted rounded-sm animate-pulse"></div>
+                      <div className="h-4 w-3/4 bg-muted rounded-sm animate-pulse"></div>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                      <div className="h-3 w-20 bg-muted rounded-sm animate-pulse"></div>
+                      <div className="h-3 w-24 bg-muted rounded-sm animate-pulse"></div>
+                      <div className="h-3 w-28 bg-muted rounded-sm animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="flex lg:flex-col gap-2 lg:items-end">
+                    <div className="h-8 w-24 bg-muted rounded-md animate-pulse"></div>
+                    <div className="h-8 w-28 bg-muted rounded-md animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {/* Lista de Vacantes */}
         {!loading && (
-          <div className="grid gap-4">
+          <div className="space-y-1">
             {vacantesFiltradas.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No hay vacantes disponibles</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {busqueda ? "Intenta con otro término de búsqueda" : "Vuelve más tarde para ver nuevas oportunidades"}
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="border-b border-border py-8 text-center">
+                <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No hay vacantes disponibles</h3>
+                <p className="text-sm text-muted-foreground">
+                  {busqueda ? "Intenta con otro término de búsqueda" : "Vuelve más tarde para ver nuevas oportunidades"}
+                </p>
+              </div>
             ) : (
-              vacantesFiltradas.map((vacante) => {
+              vacantesFiltradas.map((vacante, index) => {
                 const postulado = yaPostulado(vacante.id)
                 const diasPublicado = Math.floor(
                   (new Date().getTime() - new Date(vacante.creado_en).getTime()) / (1000 * 60 * 60 * 24)
                 )
                 
                 return (
-                  <Card key={vacante.id} className="hover:shadow-lg transition-all border-l-4 border-l-primary/40 hover:border-l-primary">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <CardTitle className="text-2xl">{vacante.titulo}</CardTitle>
-                            {postulado && (
-                              <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100">
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                                Ya postulado
-                              </Badge>
-                            )}
-                            {diasPublicado <= 3 && (
-                              <Badge variant="default" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100">
-                                Nuevo
-                              </Badge>
-                            )}
-                          </div>
-                          <CardDescription className="flex items-center gap-3 flex-wrap text-base">
-                            <span className="flex items-center gap-1.5 font-medium">
-                              <Building2 className="h-4 w-4" />
-                              {vacante.empresa?.name || "Empresa"}
+                  <div
+                    key={vacante.id}
+                    className={`group relative border-b border-border hover:bg-card/50 hover:shadow-sm transition-all duration-300 ${
+                      index === 0 ? "border-t" : ""
+                    }`}
+                  >
+                    <div className="py-4 px-5">
+                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                        {/* Left: Job Info */}
+                        <div className="flex-1 space-y-3">
+                          {/* Title and Status */}
+                          <div className="flex items-start gap-2 flex-wrap">
+                            <h3 className="text-lg lg:text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-200">
+                              {vacante.titulo}
+                            </h3>
+                            <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wide">
+                              {vacante.estado}
                             </span>
-                            {vacante.empresa?.area && (
-                              <span className="flex items-center gap-1.5 text-sm">
-                                •
-                                <span className="px-2 py-0.5 bg-muted rounded-full">
-                                  {vacante.empresa.area}
-                                </span>
+                            {postulado && (
+                              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 uppercase tracking-wide">
+                                Ya postulado
                               </span>
                             )}
-                          </CardDescription>
-                        </div>
-                        <Badge 
-                          variant={vacante.estado === "ABIERTA" ? "default" : "secondary"}
-                          className="text-sm px-3 py-1"
-                        >
-                          {vacante.estado}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="space-y-4">
-                      {/* Descripción con más líneas visibles */}
-                      <p className="text-sm text-muted-foreground line-clamp-4 leading-relaxed">
-                        {vacante.descripcion}
-                      </p>
-
-                      {/* Info adicional en grid mejorado */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {vacante.modalidad && (
-                          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                            <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground">Modalidad</p>
-                              <p className="text-sm font-medium truncate">{vacante.modalidad.nombre}</p>
-                            </div>
-                          </div>
-                        )}
-                        {vacante.horario && (
-                          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-                            <Clock className="h-4 w-4 text-primary flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground">Horario</p>
-                              <p className="text-sm font-medium truncate">{vacante.horario.nombre}</p>
-                            </div>
-                          </div>
-                        )}
-                        {(vacante.salario_minimo || vacante.salario_maximo) && (
-                          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg sm:col-span-2">
-                            <DollarSign className="h-4 w-4 text-primary flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-xs text-muted-foreground">Salario</p>
-                              <p className="text-sm font-medium truncate">
-                                {vacante.salario_minimo && vacante.salario_maximo
-                                  ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
-                                  : vacante.salario_minimo
-                                  ? `Desde $${vacante.salario_minimo.toLocaleString()}`
-                                  : `Hasta $${vacante.salario_maximo?.toLocaleString()}`}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Información adicional en una línea */}
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {diasPublicado === 0 
-                            ? "Publicado hoy" 
-                            : diasPublicado === 1
-                            ? "Publicado hace 1 día"
-                            : `Publicado hace ${diasPublicado} días`}
-                        </span>
-                        {vacante._count?.postulaciones !== undefined && (
-                          <span className="flex items-center gap-1">
-                            <Briefcase className="h-3 w-3" />
-                            {vacante._count.postulaciones} {vacante._count.postulaciones === 1 ? 'postulante' : 'postulantes'}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Botones de acción */}
-                      <div className="flex gap-2 justify-end pt-3 border-t">
-                        <Button
-                          variant="outline"
-                          onClick={() => navigate(`/vacante/${vacante.id}`)}
-                          className="gap-2"
-                        >
-                          <Search className="h-4 w-4" />
-                          Ver Detalles
-                        </Button>
-                        {postulado ? (
-                          <Button variant="outline" disabled className="gap-2">
-                            <CheckCircle2 className="h-4 w-4" />
-                            Ya te postulaste
-                          </Button>
-                        ) : (
-                          <Button
-                            onClick={() => handlePostular(vacante.id)}
-                            disabled={postulando === vacante.id || vacante.estado !== "ABIERTA"}
-                            className="gap-2"
-                          >
-                            {postulando === vacante.id ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Postulando...
-                              </>
-                            ) : (
-                              <>
-                                <Briefcase className="h-4 w-4" />
-                                Postularme
-                              </>
+                            {diasPublicado <= 3 && (
+                              <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase tracking-wide">
+                                Nuevo
+                              </span>
                             )}
+                          </div>
+
+                          {/* Company */}
+                          <div className="flex items-center gap-2 text-foreground/80">
+                            <Building2 className="w-3 h-3 text-foreground/50" />
+                            <span className="font-semibold text-sm">{vacante.empresa?.name || "Empresa"}</span>
+                            {vacante.empresa?.area && (
+                              <span className="px-2 py-0.5 rounded-md bg-foreground/5 text-foreground/70 text-xs font-medium border border-foreground/10">
+                                {vacante.empresa.area}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Meta Info Simplified */}
+                          <div className="flex items-center gap-4 text-xs text-foreground/60">
+                            <div className="flex items-center gap-1.5">
+                              <MapPin className="w-3 h-3 text-foreground/40 flex-shrink-0" />
+                              <span>{vacante.modalidad?.nombre || "Remoto"}</span>
+                            </div>
+                            {(vacante.salario_minimo || vacante.salario_maximo) && (
+                              <div className="flex items-center gap-1.5">
+                                <DollarSign className="w-3 h-3 text-foreground/40 flex-shrink-0" />
+                                <span>
+                                  {vacante.salario_minimo && vacante.salario_maximo
+                                    ? `$${Math.round(vacante.salario_minimo/1000)}k-${Math.round(vacante.salario_maximo/1000)}k`
+                                    : vacante.salario_minimo
+                                    ? `Desde $${Math.round(vacante.salario_minimo/1000)}k`
+                                    : `Hasta $${Math.round((vacante.salario_maximo || 0)/1000)}k`}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex lg:flex-col gap-2 lg:items-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/vacante/${vacante.id}`)}
+                            className="gap-1.5 text-xs hover:bg-accent hover:text-accent-foreground transition-colors duration-200"
+                          >
+                            <Search className="w-3 h-3" />
+                            Ver Detalles
                           </Button>
-                        )}
+                          {postulado ? (
+                            <Button variant="outline" size="sm" disabled className="gap-1.5 text-xs">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Ya te postulaste
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => handlePostular(vacante.id)}
+                              disabled={postulando === vacante.id || vacante.estado !== "ABIERTA"}
+                              className="gap-1.5 text-xs hover:bg-primary/90 transition-colors duration-200"
+                            >
+                              {postulando === vacante.id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  Postulando...
+                                </>
+                              ) : (
+                                <>
+                                  <Briefcase className="w-3 h-3" />
+                                  Postularme
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )
               })
             )}

@@ -1,4 +1,4 @@
-import { Building2,  User, LogOut, Settings,  Briefcase } from "lucide-react"
+import { Building2, User, LogOut, Settings, Briefcase, Users } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,16 +23,18 @@ export function EmpresaNavbar() {
     navigate('/login')
   }
 
-  const initials = user?.name && user?.lastname 
+  const initials = user?.name && user?.lastname
     ? `${user.name[0]}${user.lastname[0]}`.toUpperCase()
     : 'U'
+
+  const homePath = isEmpresaAdmin ? '/dashboard-empresa' : '/dashboard-reclutador'
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo y empresa */}
         <div className="flex items-center gap-6">
-          <Link to="/dashboard-empresa" className="flex items-center gap-2">
+          <Link to={homePath} className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Building2 className="h-5 w-5" />
             </div>
@@ -44,29 +46,36 @@ export function EmpresaNavbar() {
 
           {/* Navegación principal */}
           <nav className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard-empresa">
-                <Briefcase className="h-4 w-4 mr-2" />
-                Vacantes
-              </Link>
-            </Button>
-            {isEmpresaAdmin && (
+            {isEmpresaAdmin ? (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/dashboard-empresa">
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Vacantes
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin-empresa">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Administración
+                  </Link>
+                </Button>
+              </>
+            ) : (
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/admin-empresa">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Administración
+                <Link to="/dashboard-reclutador">
+                  <Users className="h-4 w-4 mr-2" />
+                  Mis Postulaciones
                 </Link>
               </Button>
             )}
           </nav>
         </div>
 
-        {/* Búsqueda y acciones */}
+        {/* Acciones */}
         <div className="flex items-center gap-2">
-          {/* Theme toggle */}
           <ModeToggle />
 
-          {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 h-10">
@@ -88,11 +97,9 @@ export function EmpresaNavbar() {
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">{user?.name} {user?.lastname}</p>
                   <p className="text-xs text-muted-foreground">{user?.correo}</p>
-                  {isEmpresaAdmin && (
-                    <Badge variant="secondary" className="w-fit text-xs">
-                      Administrador
-                    </Badge>
-                  )}
+                  <Badge variant="secondary" className="w-fit text-xs">
+                    {isEmpresaAdmin ? 'Administrador' : 'Reclutador'}
+                  </Badge>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

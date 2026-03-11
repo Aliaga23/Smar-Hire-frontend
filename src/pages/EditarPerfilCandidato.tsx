@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, FileText, Save, ArrowLeft, Upload, Trash2 } from "lucide-react";
+import { Loader2, FileText, Save, Upload, Trash2, MapPin, User, Star, Eye, RefreshCw } from "lucide-react";
 import { useCurrentUser } from "../utils/auth";
-import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadProfilePhoto, uploadCV, deleteProfile } from "@/services/candidato";
+import { getCandidatoProfile, updateCandidatoProfile, parseCvWithAI, uploadCV, deleteProfile } from "@/services/candidato";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useProfile } from "@/contexts/ProfileContext";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,11 +34,9 @@ interface ProfileData {
 export default function EditarPerfilCandidato() {
   const navigate = useNavigate();
   const { isAuthenticated, isCandidato, logout } = useCurrentUser();
-  const { updateFotoPerfil } = useProfile();
 
   const [loading, setLoading] = useState(false);
   const [processingCV, setProcessingCV] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCV, setUploadingCV] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -171,62 +169,6 @@ export default function EditarPerfilCandidato() {
     }
   };
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validar tipo de archivo
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor selecciona un archivo de imagen válido");
-      return;
-    }
-
-    // Validar tamaño (máx 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen no debe superar los 5MB");
-      return;
-    }
-
-    try {
-      setUploadingPhoto(true);
-      
-      const reader = new FileReader();
-      
-      const imageDataPromise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      const imageData = await imageDataPromise;
-
-      const response = await uploadProfilePhoto(imageData);
-
-      // Actualizar estado local con nueva URL de foto
-      setProfileData(prev => ({
-        ...prev,
-        foto_perfil_url: response.foto_perfil_url
-      }));
-
-      // Actualizar contexto global para que se refleje en navbar
-      updateFotoPerfil(response.foto_perfil_url);
-
-      toast.success("¡Foto de perfil actualizada!", {
-        description: "Tu foto ha sido subida exitosamente",
-      });
-    } catch (error) {
-      console.error("Error al subir foto:", error);
-      toast.error("Error al subir foto", {
-        description: "No se pudo subir la imagen. Intenta nuevamente.",
-      });
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
-
   const handleCVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -287,62 +229,105 @@ export default function EditarPerfilCandidato() {
   return (
     <>
       <CandidatoNavbar />
-      <main className="container mx-auto p-6 min-h-screen">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Editar Perfil Profesional</h1>
-            <p className="text-muted-foreground mt-1">
+      <main className="min-h-screen bg-background">
+        <div className="container mx-auto px-6 py-10 max-w-5xl">
+          {/* Header */}
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold tracking-tight">Editar Perfil Profesional</h1>
+            <p className="text-muted-foreground mt-2 text-lg">
               Actualiza tu información y mantén tu perfil al día
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate("/dashboard-candidato")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
 
-        {/* Single Professional Card */}
-        <Card>
-          <CardHeader className="border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Información del Perfil</CardTitle>
-                <CardDescription className="mt-1">
-                  Completa tu perfil manualmente o usa IA para extraer información de tu CV
-                </CardDescription>
+          <div className="space-y-8">
+            {/* Profile Preview Card */}
+            <Card className="border-none shadow-md overflow-hidden">
+              <div className="border-b p-8">
+                <div className="flex items-start gap-5">
+                  <Avatar className="h-24 w-24 border-4 border-background shadow-xl">
+                    {profileData.foto_perfil_url ? (
+                      <AvatarImage src={profileData.foto_perfil_url} alt="Foto de perfil" />
+                    ) : (
+                      <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                        {profileData.titulo?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h2 className="text-2xl font-bold text-foreground">
+                          {profileData.titulo || "Tu Título Profesional"}
+                        </h2>
+                        <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm">{profileData.ubicacion || "Tu ubicación"}</span>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="gap-1 shrink-0">
+                        <Star className="h-3 w-3" />
+                        4.9
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                      {profileData.bio || "Tu biografía profesional aparecerá aquí..."}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="cv-upload">
-                  <Button variant="outline" size="sm" disabled={processingCV} asChild>
-                    <span className="cursor-pointer">
-                      <FileText className="h-4 w-4 mr-2" />
-                      {processingCV ? "Procesando..." : "Cargar CV con OCR"}
-                    </span>
-                  </Button>
-                </label>
-                <Input
-                  id="cv-upload"
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleCVParse}
-                  disabled={processingCV}
-                  className="hidden"
-                />
-              </div>
-            </div>
-            {processingCV && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3 bg-muted/50 p-3 rounded-md">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Nuestro OCR está analizando tu CV...</span>
-              </div>
-            )}
-          </CardHeader>
+            </Card>
 
-          <CardContent className="p-6">
-            <div className="grid gap-6">
-              {/* Row 1: Título y Ubicación */}
-              <div className="grid md:grid-cols-2 gap-4">
+            {/* Profile Information Card */}
+            <Card className="border-none shadow-md">
+              <CardHeader className="border-b bg-muted/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Información del Perfil</CardTitle>
+                      <CardDescription>
+                        Completa tu perfil manualmente o usa IA para extraer información de tu CV
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <label htmlFor="cv-upload">
+                    <Button variant="outline" size="sm" disabled={processingCV} asChild>
+                      <span className="cursor-pointer gap-2">
+                        {processingCV ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Procesando...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-4 w-4" />
+                            Cargar CV con IA
+                          </>
+                        )}
+                      </span>
+                    </Button>
+                  </label>
+                  <Input
+                    id="cv-upload"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleCVParse}
+                    disabled={processingCV}
+                    className="hidden"
+                  />
+                </div>
+                {processingCV && (
+                  <div className="flex items-center gap-2 text-sm text-primary mt-4 bg-primary/5 p-3 rounded-lg border border-primary/20">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Nuestro OCR está analizando tu CV...</span>
+                  </div>
+                )}
+              </CardHeader>
+
+              <CardContent className="p-8 space-y-8">
+                {/* Título Profesional */}
                 <div className="space-y-2">
                   <Label htmlFor="titulo" className="text-sm font-medium">
                     Título Profesional <span className="text-destructive">*</span>
@@ -352,151 +337,93 @@ export default function EditarPerfilCandidato() {
                     placeholder="Ej: Full Stack Developer"
                     value={profileData.titulo}
                     onChange={(e) => handleInputChange("titulo", e.target.value)}
-                    className="h-10"
+                    className="h-12 text-base"
                   />
                 </div>
 
+                {/* Ubicación */}
                 <div className="space-y-2">
                   <Label htmlFor="ubicacion" className="text-sm font-medium">
                     Ubicación <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="ubicacion"
-                    placeholder="Ej: Ciudad de México, CDMX"
+                    placeholder="Ej: Santa Cruz de la Sierra, Bolivia"
                     value={profileData.ubicacion}
                     onChange={(e) => handleInputChange("ubicacion", e.target.value)}
-                    className="h-10"
+                    className="h-12 text-base"
                   />
                 </div>
-              </div>
 
-              {/* Row 2: Biografía */}
-              <div className="space-y-2">
-                <Label htmlFor="bio" className="text-sm font-medium">
-                  Biografía Profesional
-                </Label>
-                <Textarea
-                  id="bio"
-                  placeholder="Describe tu experiencia, habilidades y logros profesionales..."
-                  rows={6}
-                  value={profileData.bio}
-                  onChange={(e) => handleInputChange("bio", e.target.value)}
-                  className="resize-none"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Máximo 200 palabras. Destaca tu experiencia más relevante.
-                </p>
-              </div>
+                {/* Biografía */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="bio" className="text-sm font-medium">
+                      Biografía Profesional
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {profileData.bio?.split(/\s+/).filter(Boolean).length || 0} / 200 palabras
+                    </span>
+                  </div>
+                  <Textarea
+                    id="bio"
+                    placeholder="Desarrollador Full Stack especializado en aplicaciones web y móviles utilizando tecnologías como React, Angular y Node.js..."
+                    rows={6}
+                    value={profileData.bio}
+                    onChange={(e) => handleInputChange("bio", e.target.value)}
+                    className="resize-none text-base leading-relaxed"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Máximo 200 palabras. Destaca tu experiencia más relevante.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Row 3: Foto de Perfil */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Foto de Perfil
-                </Label>
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-24 w-24">
-                    {profileData.foto_perfil_url ? (
-                      <AvatarImage src={profileData.foto_perfil_url} alt="Foto de perfil" />
-                    ) : (
-                      <AvatarFallback className="text-2xl bg-primary/10">
-                        {profileData.titulo?.charAt(0) || "?"}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex-1">
-                    <label htmlFor="photo-upload">
-                      <Button 
-                        variant="outline" 
-                        disabled={uploadingPhoto}
-                        asChild
-                      >
-                        <span className="cursor-pointer gap-2">
-                          {uploadingPhoto ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Subiendo...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="h-4 w-4" />
-                              Cambiar Foto
-                            </>
-                          )}
-                        </span>
-                      </Button>
-                    </label>
-                    <Input
-                      id="photo-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      disabled={uploadingPhoto}
-                      className="hidden"
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      JPG, PNG o GIF. Máximo 5MB.
-                    </p>
+            {/* CV Upload Card */}
+            <Card className="border-none shadow-md">
+              <CardHeader className="border-b bg-muted/20">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Curriculum Vitae (CV)</CardTitle>
+                    <CardDescription>
+                      Formatos: PDF, DOC o DOCX. Máximo 10MB
+                    </CardDescription>
                   </div>
                 </div>
-              </div>
+              </CardHeader>
 
-              {/* Row 3: Foto de Perfil */}
-              <div className="space-y-2">
-                <Label htmlFor="foto" className="text-sm font-medium">
-                  URL de Foto de Perfil
-                </Label>
-                <Input
-                  id="foto"
-                  type="url"
-                  placeholder="https://ejemplo.com/mi-foto.jpg"
-                  value={profileData.foto_perfil_url}
-                  onChange={(e) => handleInputChange("foto_perfil_url", e.target.value)}
-                  className="h-10"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Ingresa la URL de tu foto profesional. Recomendado: 400x400px, formato JPG o PNG.
-                </p>
-              </div>
-
-              {/* Row 4: Curriculum Vitae */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Curriculum Vitae (CV)
-                </Label>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="cv-file-upload" className="flex-1">
-                    <Button 
-                      variant="outline" 
-                      disabled={uploadingCV}
-                      asChild
-                      className="w-full"
-                    >
-                      <span className="cursor-pointer gap-2">
+              <CardContent className="p-8">
+                {/* Upload Zone */}
+                <label htmlFor="cv-file-upload" className="block">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-2xl p-10 text-center hover:border-primary/50 hover:bg-muted/30 transition-all duration-200 cursor-pointer">
+                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                      <Upload className="h-8 w-8 text-primary" />
+                    </div>
+                    <p className="font-semibold text-lg text-foreground">Arrastra tu CV aquí</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      o haz <span className="text-primary">clic</span> para seleccionar un archivo
+                    </p>
+                    <Button variant="default" size="sm" className="mt-4" disabled={uploadingCV} asChild>
+                      <span>
                         {uploadingCV ? (
                           <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Subiendo CV...
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Subiendo...
                           </>
                         ) : (
                           <>
-                            <Upload className="h-4 w-4" />
-                            {profileData.cv_url ? 'Reemplazar CV' : 'Subir CV'}
+                            <Upload className="h-4 w-4 mr-2" />
+                            Seleccionar Archivo
                           </>
                         )}
                       </span>
                     </Button>
-                  </label>
-                  {profileData.cv_url && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => window.open(profileData.cv_url, '_blank')}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Ver CV
-                    </Button>
-                  )}
-                </div>
+                  </div>
+                </label>
                 <Input
                   id="cv-file-upload"
                   type="file"
@@ -505,73 +432,99 @@ export default function EditarPerfilCandidato() {
                   disabled={uploadingCV}
                   className="hidden"
                 />
-                <p className="text-xs text-muted-foreground">
-                  PDF, DOC o DOCX. Máximo 10MB. {profileData.cv_url && '✓ CV actual disponible'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
 
-          <CardContent className="border-t bg-muted/20 p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">
-                <span className="text-destructive">*</span> Campos requeridos
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/dashboard-candidato")}
-                  disabled={loading}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={handleSaveProfile} disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Guardar Cambios
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                {/* Current CV */}
+                {profileData.cv_url && (
+                  <div className="mt-4 p-4 bg-muted/30 rounded-lg border flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-background border flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">CV actual disponible</p>
+                        <p className="text-xs text-muted-foreground">PDF, DOC o DOCX. Máximo 10MB</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(profileData.cv_url, '_blank')}
+                        className="gap-1.5"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Ver CV
+                      </Button>
+                      <label htmlFor="cv-file-upload">
+                        <Button variant="outline" size="sm" asChild className="gap-1.5 cursor-pointer">
+                          <span>
+                            <RefreshCw className="h-4 w-4" />
+                            Reemplazar
+                          </span>
+                        </Button>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-        {/* Zona de peligro - Eliminar cuenta */}
-        <Card className="border-destructive/50">
-          <CardHeader>
-            <CardTitle className="text-destructive flex items-center gap-2">
-              <Trash2 className="h-5 w-5" />
-              Zona de Peligro
-            </CardTitle>
-            <CardDescription>
-              Acciones irreversibles para tu cuenta
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Eliminar cuenta</p>
-                <p className="text-sm text-muted-foreground">
-                  Esta acción eliminará permanentemente tu perfil, postulaciones, educación, experiencia y todos tus datos.
-                </p>
-              </div>
+            {/* Action Buttons */}
+            <div className="flex items-center justify-center gap-3 py-4">
+              <Button onClick={handleSaveProfile} disabled={loading} size="lg" className="px-8">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar Cambios
+                  </>
+                )}
+              </Button>
               <Button
-                variant="destructive"
-                onClick={() => setDeleteDialogOpen(true)}
+                variant="outline"
+                size="lg"
+                onClick={() => navigate("/dashboard-candidato")}
+                disabled={loading}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Eliminar cuenta
+                Cancelar
               </Button>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Danger Zone */}
+            <Card className="border-none shadow-md bg-destructive/5">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                    <Trash2 className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-destructive">Zona de Peligro</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Acciones irreversibles para tu cuenta
+                    </p>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setDeleteDialogOpen(true)}
+                      className="mt-3"
+                    >
+                      Eliminar cuenta
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Required Fields Note */}
+            <p className="text-center text-sm text-muted-foreground">
+              <span className="text-destructive">*</span> Campos requeridos
+            </p>
+          </div>
+        </div>
       </main>
 
       {/* Dialog de confirmación para eliminar cuenta */}

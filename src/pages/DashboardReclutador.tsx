@@ -12,12 +12,13 @@ import {
   Edit,
   MoreVertical,
   Trash2,
+  Sparkles,
   TrendingUp
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -33,14 +34,6 @@ export default function DashboardReclutador() {
   const navigate = useNavigate()
   const [vacantes, setVacantes] = useState<Vacante[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-  
-  if (!isReclutador) {
-    return <Navigate to="/dashboard-candidato" replace />
-  }
 
   const reclutadorId = user?.reclutador?.id
 
@@ -50,7 +43,6 @@ export default function DashboardReclutador() {
         setIsLoading(false)
         return
       }
-      
       try {
         setIsLoading(true)
         const response = await getVacantes({ empresaId })
@@ -64,9 +56,16 @@ export default function DashboardReclutador() {
         setIsLoading(false)
       }
     }
-
     fetchVacantes()
   }, [empresaId, reclutadorId])
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!isReclutador) {
+    return <Navigate to="/dashboard-candidato" replace />
+  }
 
   const stats = useMemo(() => ({
     vacantesActivas: vacantes.filter(v => v.estado === 'ABIERTA').length,
@@ -77,9 +76,7 @@ export default function DashboardReclutador() {
   const formatearFecha = useCallback((fecha: string) => {
     const ahora = new Date()
     const fechaVacante = new Date(fecha)
-    const diffTime = Math.abs(ahora.getTime() - fechaVacante.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
+    const diffDays = Math.ceil(Math.abs(ahora.getTime() - fechaVacante.getTime()) / (1000 * 60 * 60 * 24))
     if (diffDays === 1) return 'Hace 1 día'
     if (diffDays < 7) return `Hace ${diffDays} días`
     if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`
@@ -93,21 +90,8 @@ export default function DashboardReclutador() {
     return `Hasta $${max?.toLocaleString()}`
   }, [])
 
-  const handleNuevaVacante = () => {
-    navigate('/vacante/crear')
-  }
-
-  const handleEditarVacante = (vacanteId: string) => {
-    navigate(`/vacante/editar/${vacanteId}`)
-  }
-
-  const handleVerVacante = (vacanteId: string) => {
-    navigate(`/vacante/${vacanteId}`)
-  }
-
   const handleEliminarVacante = async (vacanteId: string) => {
     if (!window.confirm('¿Estás seguro de eliminar esta vacante?')) return
-    
     try {
       await deleteVacante(vacanteId)
       setVacantes(vacantes.filter(v => v.id !== vacanteId))
@@ -121,7 +105,7 @@ export default function DashboardReclutador() {
   const handleCambiarEstado = async (vacanteId: string, nuevoEstado: string) => {
     try {
       await updateEstadoVacante(vacanteId, nuevoEstado)
-      setVacantes(vacantes.map(v => 
+      setVacantes(vacantes.map(v =>
         v.id === vacanteId ? { ...v, estado: nuevoEstado as 'ABIERTA' | 'CERRADA' | 'PAUSADA' } : v
       ))
       toast.success(`Vacante ${nuevoEstado.toLowerCase()} exitosamente`)
@@ -131,20 +115,10 @@ export default function DashboardReclutador() {
     }
   }
 
-  const getEstadoBadge = (estado: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
-      ABIERTA: { variant: "default", label: "Abierta" },
-      CERRADA: { variant: "destructive", label: "Cerrada" },
-      PAUSADA: { variant: "secondary", label: "Pausada" }
-    }
-    const config = variants[estado] || variants.ABIERTA
-    return <Badge variant={config.variant}>{config.label}</Badge>
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <EmpresaNavbar />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
@@ -152,63 +126,49 @@ export default function DashboardReclutador() {
             <div>
               <h1 className="text-4xl font-bold tracking-tight">Dashboard de Reclutamiento</h1>
               <p className="text-muted-foreground mt-2">
-                Gestiona tus vacantes y postulaciones
+                Gestiona tus vacantes, postulaciones y compatibilidad con IA
               </p>
             </div>
-            <Button onClick={handleNuevaVacante} size="lg" className="gap-2">
+            <Button onClick={() => navigate('/vacante/crear')} size="lg" className="gap-2">
               <Plus className="h-5 w-5" />
               Nueva Vacante
             </Button>
           </div>
 
-          {/* Estadísticas */}
+          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Vacantes Activas
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Vacantes Activas</CardTitle>
                 <Briefcase className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.vacantesActivas}</div>
-                <p className="text-xs text-muted-foreground">
-                  De {stats.totalVacantes} totales
-                </p>
+                <p className="text-xs text-muted-foreground">De {stats.totalVacantes} totales</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Postulaciones
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Total Postulaciones</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.candidatosTotal}</div>
-                <p className="text-xs text-muted-foreground">
-                  Candidatos interesados
-                </p>
+                <p className="text-xs text-muted-foreground">Candidatos interesados</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Promedio por Vacante
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Promedio por Vacante</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {stats.totalVacantes > 0 
-                    ? Math.round(stats.candidatosTotal / stats.totalVacantes) 
-                    : 0}
+                  {stats.totalVacantes > 0 ? Math.round(stats.candidatosTotal / stats.totalVacantes) : 0}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Postulaciones promedio
-                </p>
+                <p className="text-xs text-muted-foreground">Postulaciones promedio</p>
               </CardContent>
             </Card>
           </div>
@@ -218,7 +178,7 @@ export default function DashboardReclutador() {
             <CardHeader>
               <CardTitle>Vacantes Publicadas</CardTitle>
               <CardDescription>
-                Gestiona y revisa tus ofertas de empleo
+                Gestiona tus ofertas, revisa candidatos y calcula compatibilidad con IA
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -238,10 +198,8 @@ export default function DashboardReclutador() {
                 <div className="text-center py-12">
                   <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No hay vacantes</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Comienza creando tu primera oferta de empleo
-                  </p>
-                  <Button onClick={handleNuevaVacante}>
+                  <p className="text-muted-foreground mb-6">Comienza creando tu primera oferta de empleo</p>
+                  <Button onClick={() => navigate('/vacante/crear')}>
                     <Plus className="h-4 w-4 mr-2" />
                     Crear Primera Vacante
                   </Button>
@@ -249,97 +207,99 @@ export default function DashboardReclutador() {
               ) : (
                 <div className="space-y-4">
                   {vacantes.map((vacante) => (
-                    <div 
-                      key={vacante.id} 
+                    <div
+                      key={vacante.id}
                       className="border rounded-lg p-6 hover:bg-muted/50 transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="text-xl font-semibold mb-1">
-                                {vacante.titulo}
-                              </h3>
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {vacante.descripcion}
-                              </p>
-                            </div>
-                            {getEstadoBadge(vacante.estado)}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold mb-1">{vacante.titulo}</h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {vacante.descripcion}
+                            </p>
                           </div>
+                          <Badge variant={vacante.estado === 'ABIERTA' ? 'default' : vacante.estado === 'CERRADA' ? 'destructive' : 'secondary'}>
+                            {vacante.estado === 'ABIERTA' ? 'Abierta' : vacante.estado === 'CERRADA' ? 'Cerrada' : 'Pausada'}
+                          </Badge>
+                        </div>
 
-                          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <Briefcase className="h-4 w-4" />
-                              {formatearSalario(vacante.salario_minimo, vacante.salario_maximo)}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              {vacante._count?.postulaciones || 0} postulaciones
-                            </div>
-                            <div>
-                              {formatearFecha(vacante.creado_en)}
-                            </div>
-                          </div>
-
-                          <Separator />
-
+                        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
-                            <Button 
-                              variant="default" 
-                              size="sm"
-                              onClick={() => handleVerVacante(vacante.id)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Candidatos
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEditarVacante(vacante.id)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </Button>
-                            
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {vacante.estado === 'ABIERTA' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleCambiarEstado(vacante.id, 'PAUSADA')}
-                                  >
-                                    Pausar vacante
-                                  </DropdownMenuItem>
-                                )}
-                                {vacante.estado === 'PAUSADA' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleCambiarEstado(vacante.id, 'ABIERTA')}
-                                  >
-                                    Reactivar vacante
-                                  </DropdownMenuItem>
-                                )}
-                                {vacante.estado !== 'CERRADA' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleCambiarEstado(vacante.id, 'CERRADA')}
-                                  >
-                                    Cerrar vacante
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  onClick={() => handleEliminarVacante(vacante.id)}
-                                  className="text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Eliminar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Briefcase className="h-4 w-4" />
+                            {formatearSalario(vacante.salario_minimo, vacante.salario_maximo)}
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {vacante._count?.postulaciones || 0} postulaciones
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            {formatearFecha(vacante.creado_en)}
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => navigate(`/vacante/${vacante.id}`)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver Candidatos
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/vacante/${vacante.id}`)}
+                            className="gap-2"
+                          >
+                            <Sparkles className="h-4 w-4" />
+                            Calcular Match
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/vacante/editar/${vacante.id}`)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </Button>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {vacante.estado === 'ABIERTA' && (
+                                <DropdownMenuItem onClick={() => handleCambiarEstado(vacante.id, 'PAUSADA')}>
+                                  Pausar vacante
+                                </DropdownMenuItem>
+                              )}
+                              {vacante.estado === 'PAUSADA' && (
+                                <DropdownMenuItem onClick={() => handleCambiarEstado(vacante.id, 'ABIERTA')}>
+                                  Reactivar vacante
+                                </DropdownMenuItem>
+                              )}
+                              {vacante.estado !== 'CERRADA' && (
+                                <DropdownMenuItem onClick={() => handleCambiarEstado(vacante.id, 'CERRADA')}>
+                                  Cerrar vacante
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleEliminarVacante(vacante.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </div>

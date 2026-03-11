@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { CandidatoNavbar } from "@/components/CandidatoNavbar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Separator } from "@/components/ui/separator"
 import { 
-  ArrowLeft, 
+  ChevronLeft, 
   Briefcase, 
   MapPin, 
   DollarSign, 
@@ -16,8 +16,10 @@ import {
   Calendar,
   CheckCircle2,
   Loader2,
-  Lightbulb,
-  Code
+  Users,
+  Send,
+  Globe,
+  TrendingUp
 } from "lucide-react"
 import { getVacante, type Vacante } from "@/services/vacante"
 import { createPostulacion, getMisPostulaciones, type Postulacion } from "@/services/postulacion"
@@ -83,10 +85,21 @@ export default function VacanteDetalleCandidato() {
     return (
       <>
         <CandidatoNavbar />
-        <main className="container mx-auto p-6 min-h-screen">
-          <div className="space-y-6">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-96 w-full" />
+        <main className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
+          <div className="container mx-auto px-4 py-8 max-w-5xl">
+            <Skeleton className="h-8 w-32 mb-8" />
+            <div className="space-y-6">
+              <Skeleton className="h-72 w-full rounded-2xl" />
+              <div className="grid lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <Skeleton className="h-48 w-full rounded-xl" />
+                  <Skeleton className="h-32 w-full rounded-xl" />
+                </div>
+                <div className="space-y-4">
+                  <Skeleton className="h-48 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       </>
@@ -97,214 +110,357 @@ export default function VacanteDetalleCandidato() {
     return (
       <>
         <CandidatoNavbar />
-        <main className="container mx-auto p-6 min-h-screen">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Vacante no encontrada</h3>
-              <Button onClick={() => navigate("/vacantes-disponibles")}>
-                Volver a Vacantes
-              </Button>
-            </CardContent>
-          </Card>
+        <main className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
+          <div className="container mx-auto px-4 py-16 max-w-lg">
+            <Card className="border-none shadow-lg">
+              <CardContent className="p-12">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mb-6">
+                    <Briefcase className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Vacante no encontrada</h3>
+                  <p className="text-muted-foreground mb-8">
+                    La vacante que buscas no existe o ha sido eliminada por el reclutador.
+                  </p>
+                  <Button onClick={() => navigate("/vacantes-disponibles")} size="lg">
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Explorar Vacantes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </main>
       </>
     )
   }
 
   const postulado = yaPostulado()
+  const diasPublicado = Math.floor((Date.now() - new Date(vacante.creado_en).getTime()) / (1000 * 60 * 60 * 24))
 
   return (
     <>
       <CandidatoNavbar />
-      <main className="container mx-auto p-6 min-h-screen max-w-5xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="outline" onClick={() => navigate("/vacantes-disponibles")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Vacantes
+      <main className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
+        <div className="container mx-auto px-4 py-8 max-w-5xl">
+          {/* Navigation */}
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate("/vacantes-disponibles")}
+            className="mb-6 -ml-3 text-muted-foreground hover:text-foreground gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Volver a vacantes
           </Button>
-          {postulado && (
-            <Badge variant="secondary" className="bg-green-100 text-green-700">
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-              Ya postulado
-            </Badge>
-          )}
-        </div>
 
-        {/* Información Principal */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <CardTitle className="text-3xl mb-2">{vacante.titulo}</CardTitle>
-                <CardDescription className="flex items-center gap-4 flex-wrap text-base">
-                  <span className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    {vacante.empresa?.name || "Empresa"}
-                  </span>
-                  {vacante.empresa?.area && (
-                    <span>• {vacante.empresa.area}</span>
+          {/* Hero Section */}
+          <Card className="border-none shadow-lg mb-8 overflow-hidden">
+            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 sm:p-10">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                {/* Left: Title & Company */}
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Badge 
+                      className={`${
+                        vacante.estado === "ABIERTA" 
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" 
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      <span className={`mr-1.5 h-2 w-2 rounded-full ${vacante.estado === "ABIERTA" ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"}`} />
+                      {vacante.estado === "ABIERTA" ? "Activa" : vacante.estado}
+                    </Badge>
+                    {diasPublicado <= 7 && (
+                      <Badge variant="secondary" className="gap-1">
+                        <TrendingUp className="h-3 w-3" />
+                        Nueva
+                      </Badge>
+                    )}
+                  </div>
+
+                  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+                    {vacante.titulo}
+                  </h1>
+
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-xl bg-background shadow-sm border flex items-center justify-center">
+                      <Building2 className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{vacante.empresa?.name}</p>
+                      {vacante.empresa?.area && (
+                        <p className="text-sm text-muted-foreground">{vacante.empresa.area}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Meta Info */}
+                  <div className="flex flex-wrap items-center gap-4 pt-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-4 w-4" />
+                      <span className="font-medium">{vacante._count?.postulaciones || 0}</span>
+                      <span>postulantes</span>
+                    </div>
+                    <Separator orientation="vertical" className="h-4" />
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {diasPublicado === 0 
+                          ? "Publicado hoy" 
+                          : diasPublicado === 1 
+                            ? "Publicado ayer"
+                            : `Hace ${diasPublicado} días`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Quick Apply */}
+                <div className="lg:text-right space-y-4">
+                  {(vacante.salario_minimo || vacante.salario_maximo) && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Salario</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {vacante.salario_minimo && vacante.salario_maximo
+                          ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
+                          : vacante.salario_minimo
+                            ? `Desde $${vacante.salario_minimo.toLocaleString()}`
+                            : `Hasta $${vacante.salario_maximo?.toLocaleString()}`}
+                      </p>
+                    </div>
                   )}
-                </CardDescription>
+
+                  <div className="flex lg:justify-end gap-2">
+                    {postulado ? (
+                      <Button variant="secondary" size="lg" disabled className="gap-2">
+                        <CheckCircle2 className="h-5 w-5" />
+                        Ya Postulado
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="lg"
+                        onClick={handlePostular}
+                        disabled={postulando || vacante.estado !== "ABIERTA"}
+                        className="gap-2 shadow-lg"
+                      >
+                        {postulando ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-5 w-5" />
+                            Postularme
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <Badge 
-                variant={vacante.estado === "ABIERTA" ? "default" : "secondary"}
-                className="text-sm px-3 py-1"
-              >
-                {vacante.estado}
-              </Badge>
             </div>
-          </CardHeader>
 
-          <CardContent className="space-y-6">
-            {/* Detalles básicos */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {vacante.modalidad && (
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Modalidad</p>
-                    <p className="font-medium">{vacante.modalidad.nombre}</p>
+            {/* Info Pills */}
+            <div className="px-8 sm:px-10 py-6 border-t bg-card/50">
+              <div className="flex flex-wrap gap-3">
+                {vacante.modalidad && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-background rounded-full border shadow-sm">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">{vacante.modalidad.nombre}</span>
                   </div>
-                </div>
-              )}
-
-              {vacante.horario && (
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <Clock className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Horario</p>
-                    <p className="font-medium">{vacante.horario.nombre}</p>
+                )}
+                {vacante.horario && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-background rounded-full border shadow-sm">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">{vacante.horario.nombre}</span>
                   </div>
-                </div>
-              )}
-
-              {(vacante.salario_minimo || vacante.salario_maximo) && (
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Salario</p>
-                    <p className="font-medium">
+                )}
+                {(vacante.salario_minimo || vacante.salario_maximo) && (
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-background rounded-full border shadow-sm">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">
                       {vacante.salario_minimo && vacante.salario_maximo
-                        ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
+                        ? `$${(vacante.salario_minimo / 1000).toFixed(0)}k - $${(vacante.salario_maximo / 1000).toFixed(0)}k`
                         : vacante.salario_minimo
-                        ? `Desde $${vacante.salario_minimo.toLocaleString()}`
-                        : `Hasta $${vacante.salario_maximo?.toLocaleString()}`}
+                          ? `Desde $${(vacante.salario_minimo / 1000).toFixed(0)}k`
+                          : `Hasta $${((vacante.salario_maximo || 0) / 1000).toFixed(0)}k`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Content Grid */}
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Description */}
+              <Card className="border-none shadow-md">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                    Descripción del Puesto
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {vacante.descripcion}
                     </p>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+
+              {/* Company Info */}
+              {vacante.empresa && (
+                <Card className="border-none shadow-md">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      Acerca de {vacante.empresa.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-start gap-4">
+                      <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border flex items-center justify-center shrink-0">
+                        <Building2 className="h-8 w-8 text-primary" />
+                      </div>
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-lg text-foreground">{vacante.empresa.name}</h3>
+                          {vacante.empresa.area && (
+                            <Badge variant="secondary" className="mt-1 gap-1">
+                              <Globe className="h-3 w-3" />
+                              {vacante.empresa.area}
+                            </Badge>
+                          )}
+                        </div>
+                        {vacante.empresa.descripcion && (
+                          <p className="text-muted-foreground leading-relaxed">
+                            {vacante.empresa.descripcion}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Already Applied */}
+              {postulado && (
+                <Card className="border-emerald-500/30 bg-emerald-500/5 shadow-md">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="h-12 w-12 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground mb-1">
+                          ¡Tu postulación fue enviada!
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          El equipo de {vacante.empresa?.name || "la empresa"} revisará tu perfil. 
+                          Te notificaremos cuando haya novedades sobre tu postulación.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
 
-            <Separator />
-
-            {/* Descripción */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Descripción del Puesto</h3>
-              <p className="text-muted-foreground whitespace-pre-wrap">{vacante.descripcion}</p>
-            </div>
-
-            {/* Información de la empresa */}
-            {vacante.empresa && (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Sobre la Empresa
-                  </h3>
-                  <div className="space-y-2">
-                    <p className="font-medium text-lg">{vacante.empresa.name}</p>
-                    {vacante.empresa.descripcion && (
-                      <p className="text-muted-foreground">{vacante.empresa.descripcion}</p>
-                    )}
-                    {vacante.empresa.area && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Code className="h-4 w-4" />
-                        <span>{vacante.empresa.area}</span>
-                      </div>
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Quick Actions */}
+              <Card className="border-none shadow-md sticky top-24">
+                <CardContent className="p-6 space-y-6">
+                  {/* Apply Button */}
+                  <div className="space-y-3">
+                    {postulado ? (
+                      <Button variant="secondary" className="w-full h-12" disabled>
+                        <CheckCircle2 className="h-5 w-5 mr-2" />
+                        Ya Postulado
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="w-full h-12 shadow-md"
+                        onClick={handlePostular}
+                        disabled={postulando || vacante.estado !== "ABIERTA"}
+                      >
+                        {postulando ? (
+                          <>
+                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-5 w-5 mr-2" />
+                            Postularme Ahora
+                          </>
+                        )}
+                      </Button>
                     )}
                   </div>
-                </div>
-              </>
-            )}
 
-            <Separator />
+                  <Separator />
 
-            {/* Fecha de publicación */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>
-                Publicado el {new Date(vacante.creado_en).toLocaleDateString("es-ES", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric"
-                })}
-              </span>
+                  {/* Job Details */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+                      Detalles del Empleo
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span className="text-sm">Jornada</span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">
+                          {vacante.horario?.nombre || "No especificado"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm">Modalidad</span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">
+                          {vacante.modalidad?.nombre || "No especificado"}
+                        </span>
+                      </div>
+                      {(vacante.salario_minimo || vacante.salario_maximo) && (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <DollarSign className="h-4 w-4" />
+                            <span className="text-sm">Salario</span>
+                          </div>
+                          <span className="text-sm font-medium text-foreground">
+                            {vacante.salario_minimo && vacante.salario_maximo
+                              ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
+                              : vacante.salario_minimo
+                                ? `Desde $${vacante.salario_minimo.toLocaleString()}`
+                                : `Hasta $${vacante.salario_maximo?.toLocaleString()}`}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span className="text-sm">Postulantes</span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">
+                          {vacante._count?.postulaciones || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Botón de postulación */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">
-                  {postulado ? "Ya te postulaste a esta vacante" : "¿Te interesa esta oportunidad?"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {postulado 
-                    ? "El reclutador revisará tu perfil y se pondrá en contacto contigo" 
-                    : "Postúlate ahora y destaca entre los candidatos"}
-                </p>
-              </div>
-              {postulado ? (
-                <Button variant="outline" disabled size="lg">
-                  <CheckCircle2 className="h-5 w-5 mr-2" />
-                  Ya Postulado
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handlePostular}
-                  disabled={postulando || vacante.estado !== "ABIERTA"}
-                  size="lg"
-                >
-                  {postulando ? (
-                    <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Postulando...
-                    </>
-                  ) : (
-                    <>
-                      <Briefcase className="h-5 w-5 mr-2" />
-                      Postularme Ahora
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Consejo IA */}
-        {!postulado && (
-          <Card className="mt-6 border-blue-200 bg-blue-50/50">
-            <CardContent className="p-6">
-              <div className="flex gap-4">
-                <Lightbulb className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-2">Consejo del Sistema IA</h3>
-                  <p className="text-sm text-blue-800">
-                    Asegúrate de que tu perfil esté completo con todas tus habilidades y experiencia antes de postularte. 
-                    Esto mejorará tu puntuación de compatibilidad con esta vacante.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          </div>
+        </div>
       </main>
     </>
   )

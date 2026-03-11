@@ -40,14 +40,6 @@ export default function VacanteDetalle() {
   const [isProcessingMatching, setIsProcessingMatching] = useState(false)
   const [showMatchingModal, setShowMatchingModal] = useState(false)
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-
-  if (!isReclutador) {
-    return <Navigate to="/dashboard-candidato" replace />
-  }
-
   useEffect(() => {
     const fetchVacante = async () => {
       if (!id) return
@@ -87,6 +79,14 @@ export default function VacanteDetalle() {
 
     fetchPostulaciones()
   }, [id, currentPage])
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!isReclutador) {
+    return <Navigate to="/dashboard-candidato" replace />
+  }
 
   const formatearFecha = useCallback((fecha: string) => {
     const date = new Date(fecha)

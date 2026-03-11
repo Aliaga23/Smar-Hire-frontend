@@ -8,24 +8,13 @@ import {
   Users, 
   Clock, 
   Eye,
-  Plus,
-  Edit,
-  MoreVertical,
-  Trash2,
   BarChart3
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
-import { useState, useEffect,  useCallback } from "react"
-import { getVacantes, deleteVacante, updateEstadoVacante, type Vacante } from "@/services/vacante"
+import { useState, useEffect, useCallback } from "react"
+import { getVacantes, type Vacante } from "@/services/vacante"
 import { toast } from "sonner"
 import api from "@/lib/axios"
 
@@ -39,19 +28,6 @@ export default function DashboardEmpresa() {
     candidatosTotal: 0,
     totalReclutadores: 0
   })
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-  
-  if (!isReclutador) {
-    return <Navigate to="/dashboard-candidato" replace />
-  }
-
-  // Solo admin de empresa puede acceder a este dashboard
-  if (!isEmpresaAdmin) {
-    return <Navigate to="/dashboard-reclutador" replace />
-  }
 
   // Cargar vacantes de la empresa y estadísticas
   useEffect(() => {
@@ -92,6 +68,18 @@ export default function DashboardEmpresa() {
     fetchData()
   }, [empresaId])
 
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!isReclutador) {
+    return <Navigate to="/dashboard-candidato" replace />
+  }
+
+  if (!isEmpresaAdmin) {
+    return <Navigate to="/dashboard-reclutador" replace />
+  }
+
   // Formatear fecha
   const formatearFecha = useCallback((fecha: string) => {
     const ahora = new Date()
@@ -113,50 +101,6 @@ export default function DashboardEmpresa() {
     return `Hasta $${max?.toLocaleString()}`
   }, [])
 
-  // Navegar a página de crear vacante
-  const handleNuevaVacante = () => {
-    navigate('/vacante/crear')
-  }
-
-  // Navegar a página de editar vacante
-  const handleEditarVacante = (vacanteId: string) => {
-    navigate(`/vacante/editar/${vacanteId}`)
-  }
-
-  // Eliminar vacante
-  const handleEliminarVacante = async (vacanteId: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta vacante?')) return
-    
-    try {
-      await deleteVacante(vacanteId)
-      toast.success('Vacante eliminada correctamente')
-      // Recargar vacantes
-      if (empresaId) {
-        const data = await getVacantes({ empresaId })
-        const vacantesData = Array.isArray(data) ? data : data.data || []
-        setVacantes(vacantesData)
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al eliminar la vacante')
-    }
-  }
-
-  // Cambiar estado de vacante
-  const handleCambiarEstado = async (vacanteId: string, nuevoEstado: 'ABIERTA' | 'CERRADA' | 'PAUSADA') => {
-    try {
-      await updateEstadoVacante(vacanteId, nuevoEstado)
-      toast.success(`Vacante ${nuevoEstado.toLowerCase()} correctamente`)
-      // Recargar vacantes
-      if (empresaId) {
-        const data = await getVacantes({ empresaId })
-        const vacantesData = Array.isArray(data) ? data : data.data || []
-        setVacantes(vacantesData)
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al cambiar el estado')
-    }
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <EmpresaNavbar />
@@ -167,17 +111,13 @@ export default function DashboardEmpresa() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Panel de Control</h1>
             <p className="text-muted-foreground mt-1">
-              Gestiona tus vacantes y encuentra el talento ideal
+              Monitorea el estado de las vacantes y el equipo de reclutamiento
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="gap-2" onClick={() => navigate(`/empresa/${empresaId}/analytics`)}>
               <BarChart3 className="h-4 w-4" />
               Analytics
-            </Button>
-            <Button size="lg" className="gap-2" onClick={handleNuevaVacante}>
-              <Plus className="h-4 w-4" />
-              Nueva Vacante
             </Button>
           </div>
         </div>
@@ -248,10 +188,9 @@ export default function DashboardEmpresa() {
                 <div>
                   <CardTitle>Vacantes Activas</CardTitle>
                   <CardDescription>
-                    Gestiona y monitorea el progreso de tus ofertas
+                    Monitorea el progreso de tus ofertas
                   </CardDescription>
                 </div>
-             
               </div>
             </CardHeader>
             <CardContent>
@@ -310,47 +249,14 @@ export default function DashboardEmpresa() {
                             </span>
                           </div>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/vacante/${vacante.id}`)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver detalles
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditarVacante(vacante.id)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {vacante.estado !== 'ABIERTA' && (
-                              <DropdownMenuItem onClick={() => handleCambiarEstado(vacante.id, 'ABIERTA')}>
-                                Abrir vacante
-                              </DropdownMenuItem>
-                            )}
-                            {vacante.estado !== 'PAUSADA' && (
-                              <DropdownMenuItem onClick={() => handleCambiarEstado(vacante.id, 'PAUSADA')}>
-                                Pausar vacante
-                              </DropdownMenuItem>
-                            )}
-                            {vacante.estado !== 'CERRADA' && (
-                              <DropdownMenuItem onClick={() => handleCambiarEstado(vacante.id, 'CERRADA')}>
-                                Cerrar vacante
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleEliminarVacante(vacante.id)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => navigate(`/vacante/${vacante.id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </div>
                       
                       <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">

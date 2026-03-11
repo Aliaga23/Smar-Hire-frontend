@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { CandidatoNavbar } from "../components/CandidatoNavbar"
+import { ModeToggle } from "@/components/mode-toggle"
 import { 
   Briefcase, 
   GraduationCap, 
@@ -15,16 +15,21 @@ import {
   Calendar,
   Building2,
   DollarSign,
-  CheckCircle2,
-  XCircle,
   Search,
-  FileText,
-  Settings,
   Lightbulb,
   Plus,
   Trash2,
   Building,
-  Loader2
+  Loader2,
+  User,
+  Clock,
+  Cloud,
+  Database,
+  Code,
+  ChevronRight,
+  ChevronDown,
+  LogOut,
+  Smartphone
 } from "lucide-react"
 import { 
   getExperiencias, 
@@ -50,6 +55,20 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 
 interface Habilidad {
@@ -117,7 +136,7 @@ interface CandidatoProfile {
 }
 
 export default function DashboardCandidato() {
-  const { isAuthenticated, isCandidato } = useCurrentUser()
+  const { isAuthenticated, isCandidato, logout } = useCurrentUser()
   const [profile, setProfile] = useState<CandidatoProfile | null>(null)
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([])
   const [experiencias, setExperiencias] = useState<Experiencia[]>([])
@@ -144,7 +163,8 @@ export default function DashboardCandidato() {
     fecha_comienzo: "",
     fecha_final: null,
   })
-  
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
@@ -334,275 +354,405 @@ export default function DashboardCandidato() {
 
   return (
     <div className="min-h-screen bg-background">
-      <CandidatoNavbar />
-      
-      <main className="container mx-auto p-6 space-y-6">
-        {/* Header con info del usuario */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Bienvenido, {profile.usuario.name}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <User className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-sm font-bold leading-tight text-foreground">Mi Portal</div>
+              <div className="text-xs leading-tight text-muted-foreground">SmartHire</div>
+            </div>
+          </div>
+
+          <nav className="flex items-center gap-2">
+            <ModeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    {profile.foto_perfil_url && <AvatarImage src={profile.foto_perfil_url} alt="Foto de perfil" />}
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {profile.usuario.name.charAt(0)}{profile.usuario.lastname.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {profile.usuario.name} {profile.usuario.lastname}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {profile.usuario.correo}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/editar-perfil" className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Mi Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => logout()} className="text-red-600 cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar sesión</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+        </div>
+      </header>
+
+      <main className="container mx-auto space-y-4 px-4 py-4">
+        <section className="space-y-4">
+          <div className="space-y-1">
+            <h1 className="text-balance text-3xl font-bold leading-tight tracking-tight text-foreground lg:text-4xl">
+              Bienvenido, {profile.usuario.name} {profile.usuario.lastname}
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            <p className="text-pretty text-base leading-relaxed text-muted-foreground">
               {profile.titulo || 'Candidato'} • {profile.ubicacion || 'Ubicación no especificada'}
             </p>
           </div>
+
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
-              <Link to="/gestionar-habilidades" className="gap-2">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Gestionar Habilidades</span>
-                <span className="sm:hidden">Habilidades</span>
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
-              <Link to="/vacantes-disponibles" className="gap-2">
-                <Search className="h-4 w-4" />
-                <span className="hidden sm:inline">Buscar Empleos</span>
-                <span className="sm:hidden">Empleos</span>
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
-              <Link to="/mis-recomendaciones" className="gap-2">
+            <Button variant="outline" className="gap-2 bg-transparent" asChild>
+              <Link to="/gestionar-habilidades">
                 <Lightbulb className="h-4 w-4" />
+                Gestionar Habilidades
+              </Link>
+            </Button>
+            <Button variant="outline" className="gap-2 bg-transparent" asChild>
+              <Link to="/vacantes-disponibles">
+                <Search className="h-4 w-4" />
+                Buscar Empleos
+              </Link>
+            </Button>
+            <Button variant="outline" className="gap-2 bg-transparent" asChild>
+              <Link to="/mis-recomendaciones">
+                <MapPin className="h-4 w-4" />
                 Recomendaciones
               </Link>
             </Button>
           </div>
-        </div>
+        </section>
 
-        {/* Estadísticas rápidas */}
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Postulaciones
-              </CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Briefcase className="h-4 w-4" />
+                </div>
+                <Badge variant="secondary">{postulacionesActivas.length} activas</Badge>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{profile._count.postulaciones}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {postulacionesActivas.length} activas
-              </p>
+            <CardContent className="pt-0">
+              <div className="space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Postulaciones</CardTitle>
+                <div className="text-xl font-bold tracking-tight text-foreground">{postulaciones.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {postulaciones.length - postulacionesActivas.length} pendientes • {postulacionesActivas.length} completadas
+                </p>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Habilidades
-              </CardTitle>
-              <Award className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <Lightbulb className="h-4 w-4" />
+                </div>
+                <Badge className="bg-accent/10 text-accent border-accent/30">{habilidadPromedio}%</Badge>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{profile.habilidadesCandidato.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Nivel promedio: {habilidadPromedio}%
-              </p>
+            <CardContent className="pt-0">
+              <div className="space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Habilidades</CardTitle>
+                <div className="text-xl font-bold tracking-tight text-foreground">{profile.habilidadesCandidato.length}</div>
+                <p className="text-xs text-muted-foreground">Nivel promedio de dominio</p>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Experiencias
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Award className="h-4 w-4" />
+                </div>
+                <Badge variant="secondary">{experiencias.length} posiciones</Badge>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{experiencias.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Posiciones registradas
-              </p>
+            <CardContent className="pt-0">
+              <div className="space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Experiencias</CardTitle>
+                <div className="text-xl font-bold tracking-tight text-foreground">{experiencias.length}</div>
+                <p className="text-xs text-muted-foreground">Posiciones registradas</p>
+              </div>
             </CardContent>
           </Card>
-        </div>
+        </section>
 
-        {/* Tabs principales */}
         <Tabs defaultValue="postulaciones" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="postulaciones" className="text-xs sm:text-sm">
-              <span className="hidden sm:inline">Mis Postulaciones</span>
-              <span className="sm:hidden">Postulaciones</span>
+          <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
+            <TabsTrigger
+              value="postulaciones"
+              className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            >
+              Mis Postulaciones
             </TabsTrigger>
-            <TabsTrigger value="habilidades" className="text-xs sm:text-sm">Habilidades</TabsTrigger>
-            <TabsTrigger value="experiencia" className="text-xs sm:text-sm">Experiencia</TabsTrigger>
+            <TabsTrigger
+              value="habilidades"
+              className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            >
+              Habilidades
+            </TabsTrigger>
+            <TabsTrigger
+              value="experiencia"
+              className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            >
+              Experiencia
+            </TabsTrigger>
           </TabsList>
 
-          {/* Tab: Postulaciones */}
-          <TabsContent value="postulaciones" className="space-y-4">
+          <TabsContent value="postulaciones" className="space-y-3">
             {postulaciones.length === 0 ? (
               <Card>
-                <CardContent className="pt-6 text-center">
-                  <Briefcase className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No tienes postulaciones</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Comienza a postularte a vacantes que se ajusten a tu perfil
+                <CardContent className="flex flex-col items-center justify-center py-6">
+                  <Briefcase className="h-10 w-10 text-muted-foreground mb-3" />
+                  <h3 className="text-base font-semibold mb-2">No tienes postulaciones</h3>
+                  <p className="text-muted-foreground text-center mb-3 text-sm">
+                    Comienza a buscar empleos y postula a las vacantes que te interesen
                   </p>
-                  <Link to="/vacantes">
-                    <Button>Buscar Empleos</Button>
-                  </Link>
+                  <Button size="sm" asChild>
+                    <Link to="/vacantes-disponibles">Buscar Empleos</Link>
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {postulaciones.map((postulacion) => (
-                  <Card key={postulacion.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex flex-col sm:flex-row items-start gap-4 sm:justify-between">
-                        <div className="flex-1 w-full">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-                            <CardTitle className="text-lg sm:text-xl">{postulacion.vacante?.titulo}</CardTitle>
-                            {postulacion.vacante?.estado === 'ABIERTA' ? (
-                              <Badge variant="default" className="gap-1 w-fit">
-                                <CheckCircle2 className="w-3 h-3" />
-                                Abierta
+              postulaciones.map((postulacion) => (
+                <Card key={postulacion.id} className="transition-shadow hover:shadow-md">
+                  <CardContent className="p-2">
+                    <div className="flex flex-col gap-2 lg:flex-row">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-base font-bold text-foreground">{postulacion.vacante?.titulo}</h3>
+                              <Badge
+                                className={
+                                  postulacion.vacante?.estado === "ABIERTA"
+                                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                                    : ""
+                                }
+                              >
+                                {postulacion.vacante?.estado}
                               </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="gap-1 w-fit">
-                                <XCircle className="w-3 h-3" />
-                                Cerrada
-                              </Badge>
-                            )}
-                          </div>
-                          <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
-                            <span className="flex items-center gap-1">
-                              <Building2 className="w-4 h-4" />
-                              {postulacion.vacante?.empresa?.name}
-                            </span>
-                            <span className="text-xs sm:text-sm">{postulacion.vacante?.empresa?.area}</span>
-                          </CardDescription>
-                        </div>
-                        <div className="text-left sm:text-right">
-                          <div className={`text-2xl font-bold ${getCompatibilidadColor((postulacion.puntuacion_compatibilidad || 0) * 100)}`}>
-                            {Math.round((postulacion.puntuacion_compatibilidad || 0) * 100)}%
-                          </div>
-                          <p className="text-xs text-muted-foreground">Compatibilidad</p>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                        {postulacion.vacante?.descripcion}
-                      </p>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
-                          {postulacion.vacante?.salario_minimo && (
-                            <div className="flex items-center gap-1 text-muted-foreground text-xs sm:text-sm">
-                              <DollarSign className="w-4 h-4" />
-                              <span className="hidden sm:inline">
-                                ${postulacion.vacante?.salario_minimo.toLocaleString()} - ${postulacion.vacante?.salario_maximo?.toLocaleString()}
-                              </span>
-                              <span className="sm:hidden">
-                                ${postulacion.vacante?.salario_minimo.toLocaleString()}
-                              </span>
                             </div>
-                          )}
-                          <Badge variant="outline" className="text-xs">{postulacion.vacante?.modalidad?.nombre}</Badge>
-                          <Badge variant="outline" className="text-xs">{postulacion.vacante?.horario?.nombre}</Badge>
+                            <div className="flex items-center gap-2 text-xs">
+                              <Building2 className="h-3 w-3 text-muted-foreground" />
+                              <span className="font-semibold text-foreground">{postulacion.vacante?.empresa?.name}</span>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-muted-foreground">{postulacion.vacante?.categoria?.nombre || 'Tecnología'}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">Postulado:</span>
-                          {formatDate(postulacion.creado_en)}
+
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            <span>${postulacion.vacante?.salario_minimo?.toLocaleString() || 0} - ${postulacion.vacante?.salario_maximo?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            <span>{postulacion.vacante?.modalidad?.nombre || 'Remoto'}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{postulacion.vacante?.horario?.nombre || 'Tiempo completo'}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>Postulado: {formatDate(postulacion.creado_en)}</span>
+                          </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+
+                      <div className="flex flex-row items-center justify-between gap-2 border-t pt-2 lg:flex-col lg:items-end lg:justify-start lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
+                        <div className="text-center">
+                          <div className={`text-2xl font-bold text-primary ${getCompatibilidadColor((postulacion.puntuacion_compatibilidad || 0) * 100)}`}>
+                            {(postulacion.puntuacion_compatibilidad || 0) * 100}%
+                          </div>
+                          <div className="mt-1 text-xs font-medium text-muted-foreground">Compatibilidad</div>
+                        </div>
+                        <Button size="sm" className="gap-1 text-xs h-7" asChild>
+                          <Link to={`/vacante/${postulacion.vacante?.id}`}>
+                            Ver Detalles
+                            <ChevronRight className="h-3 w-3" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             )}
           </TabsContent>
 
-          {/* Tab: Habilidades */}
-          <TabsContent value="habilidades" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                    <Award className="w-5 h-5" />
-                    Habilidades Técnicas ({profile.habilidadesCandidato.length})
-                  </CardTitle>
-                  <div className="text-left sm:text-right">
-                    <div className="text-2xl font-bold text-primary">{habilidadPromedio}%</div>
-                    <p className="text-xs text-muted-foreground">Nivel Promedio</p>
+          <TabsContent value="habilidades">
+            <Card className="border-none shadow-sm">
+              <CardHeader className="border-b ">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl font-bold tracking-tight">Competencias Técnicas</CardTitle>
+                    <CardDescription>
+                      {profile.habilidadesCandidato.length} habilidades registradas
+                    </CardDescription>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold tracking-tight text-primary">{habilidadPromedio}%</div>
+                    <p className="mt-1 text-xs font-medium text-muted-foreground">Nivel promedio</p>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+
+              <CardContent className="pt-6">
                 {profile.habilidadesCandidato.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No has agregado habilidades aún</p>
+                  <div className="text-center py-8">
+                    <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No tienes habilidades registradas</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Agrega tus habilidades para mejorar tus oportunidades
+                    </p>
+                    <Button asChild>
+                      <Link to="/gestionar-habilidades">Agregar Habilidades</Link>
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-6">
-                    {/* Agrupar por categoría */}
                     {Object.entries(
-                      profile.habilidadesCandidato.reduce((acc, hab) => {
-                        const cat = hab.habilidad.categoria.nombre
-                        if (!acc[cat]) acc[cat] = []
-                        acc[cat].push(hab)
+                      profile.habilidadesCandidato.reduce((acc, h) => {
+                        const categoria = h.habilidad.categoria.nombre
+                        if (!acc[categoria]) acc[categoria] = []
+                        acc[categoria].push(h)
                         return acc
-                      }, {} as Record<string, Habilidad[]>)
-                    ).map(([categoria, habilidades]) => (
-                      <div key={categoria}>
-                        <h3 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">
-                          {categoria}
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {habilidades.map((hab) => (
-                            <div key={hab.id} className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium">{hab.habilidad.nombre}</span>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="secondary">{getNivelLabel(hab.nivel)}</Badge>
-                                  <span className="text-sm font-bold text-primary">{hab.nivel}/10</span>
+                      }, {} as Record<string, typeof profile.habilidadesCandidato>)
+                    ).map(([categoria, habilidadesCat]) => {
+                      const CategoryIcon = {
+                        'Frontend': Code,
+                        'Backend': Database,
+                        'Cloud': Cloud,
+                        'Mobile': Smartphone,
+                      }[categoria] || Lightbulb
+                      const iconColor = {
+                        'Frontend': 'text-purple-600 dark:text-purple-400',
+                        'Backend': 'text-emerald-600 dark:text-emerald-400',
+                        'Cloud': 'text-blue-600 dark:text-blue-400',
+                        'Mobile': 'text-orange-600 dark:text-orange-400',
+                      }[categoria] || 'text-primary'
+
+                      return (
+                        <Collapsible
+                          key={categoria}
+                          open={openCategories[categoria] || false}
+                          onOpenChange={(open) => 
+                            setOpenCategories(prev => ({ ...prev, [categoria]: open }))
+                          }
+                        >
+                          <CollapsibleTrigger className="w-full">
+                            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20 hover:bg-muted/30 transition-colors">
+                              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                <CategoryIcon className={`h-4 w-4 ${iconColor}`} />
+                                {categoria}
+                                <span className="text-xs font-normal text-muted-foreground">
+                                  ({habilidadesCat.length})
+                                </span>
+                              </div>
+                              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${
+                                openCategories[categoria] ? 'rotate-180' : ''
+                              }`} />
+                            </div>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="space-y-2 mt-2">
+                            {habilidadesCat.map((h) => (
+                              <div
+                                key={h.id}
+                                className="flex items-center justify-between gap-4 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
+                              >
+                                <div className="flex min-w-0 flex-1 items-center gap-3">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-foreground">{h.habilidad.nombre}</p>
+                                    <p className="mt-0.5 text-sm text-muted-foreground">{getNivelLabel(h.nivel)}</p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                  <div className="flex w-32 items-center gap-2">
+                                    <Progress value={h.nivel * 10} className="h-2 flex-1" />
+                                    <span className="text-xs font-medium tabular-nums text-muted-foreground w-8">
+                                      {h.nivel}/10
+                                    </span>
+                                  </div>
+                                  <Badge
+                                    variant={
+                                      h.nivel >= 9
+                                        ? "default"
+                                        : h.nivel >= 7
+                                          ? "secondary"
+                                          : "outline"
+                                    }
+                                    className="shrink-0"
+                                  >
+                                    {getNivelLabel(h.nivel)}
+                                  </Badge>
                                 </div>
                               </div>
-                              <Progress value={hab.nivel * 10} className="h-2" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )
+                    })}
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Tab: Experiencia */}
           <TabsContent value="experiencia" className="space-y-4">
-            {/* Experiencia Laboral */}
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                    <Briefcase className="w-5 h-5" />
-                    Experiencia Laboral ({experiencias.length})
-                  </CardTitle>
-                  <Button 
-                    size="sm" 
-                    onClick={() => setShowAddExperiencia(!showAddExperiencia)}
-                    variant={showAddExperiencia ? "outline" : "default"}
-                    className="w-full sm:w-auto"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {showAddExperiencia ? "Cancelar" : "Agregar"}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="border-b ">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl font-bold tracking-tight">Trayectoria Profesional</CardTitle>
+                    <CardDescription>
+                      {experiencias.length} posiciones registradas
+                    </CardDescription>
+                  </div>
+                  <Button size="sm" className="gap-2" onClick={() => setShowAddExperiencia(true)}>
+                    <Plus className="h-4 w-4" />
+                    Agregar posición
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                {/* Formulario para agregar */}
+
+              <CardContent className="pt-6">
+                {/* Formulario para agregar experiencia */}
                 {showAddExperiencia && (
                   <div className="border rounded-lg p-4 mb-6 bg-muted/20">
                     <h4 className="font-semibold mb-4">Nueva Experiencia</h4>
                     <div className="grid gap-4">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="exp-titulo">Cargo/Título <span className="text-destructive">*</span></Label>
+                          <Label htmlFor="exp-titulo">Puesto <span className="text-destructive">*</span></Label>
                           <Input
                             id="exp-titulo"
-                            placeholder="Ej: Senior Software Engineer"
+                            placeholder="Ej: Desarrollador Full Stack"
                             value={newExperiencia.titulo}
                             onChange={(e) => setNewExperiencia({ ...newExperiencia, titulo: e.target.value })}
                           />
@@ -611,7 +761,7 @@ export default function DashboardCandidato() {
                           <Label htmlFor="exp-empresa">Empresa <span className="text-destructive">*</span></Label>
                           <Input
                             id="exp-empresa"
-                            placeholder="Ej: Google"
+                            placeholder="Ej: Tech Company"
                             value={newExperiencia.empresa}
                             onChange={(e) => setNewExperiencia({ ...newExperiencia, empresa: e.target.value })}
                           />
@@ -623,8 +773,8 @@ export default function DashboardCandidato() {
                           <Label htmlFor="exp-ubicacion">Ubicación</Label>
                           <Input
                             id="exp-ubicacion"
-                            placeholder="Ej: Ciudad de México"
-                            value={newExperiencia.ubicacion || ""}
+                            placeholder="Ej: Santa Cruz, Bolivia"
+                            value={newExperiencia.ubicacion}
                             onChange={(e) => setNewExperiencia({ ...newExperiencia, ubicacion: e.target.value })}
                           />
                         </div>
@@ -652,7 +802,7 @@ export default function DashboardCandidato() {
                         <Label htmlFor="exp-descripcion">Descripción</Label>
                         <Textarea
                           id="exp-descripcion"
-                          placeholder="Describe tus responsabilidades y logros..."
+                          placeholder="Describe tus responsabilidades, logros y tecnologías utilizadas..."
                           rows={3}
                           value={newExperiencia.descripcion || ""}
                           onChange={(e) => setNewExperiencia({ ...newExperiencia, descripcion: e.target.value })}
@@ -682,47 +832,73 @@ export default function DashboardCandidato() {
                 )}
 
                 {experiencias.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No has agregado experiencia laboral aún</p>
+                  <div className="text-center py-8">
+                    <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No tienes experiencia registrada</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Agrega tu experiencia profesional para destacar tu perfil
+                    </p>
+                    <Button onClick={() => setShowAddExperiencia(true)}>Agregar Experiencia</Button>
+                  </div>
                 ) : (
-                  <div className="space-y-6">
-                    {experiencias.map((exp) => (
-                      <div key={exp.id} className="relative pl-6 pb-6 border-l-2 border-muted last:pb-0">
-                        <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-primary" />
-                        <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
-                          <div className="space-y-1 flex-1 w-full sm:w-auto">
-                            <h3 className="font-semibold text-base sm:text-lg">{exp.titulo}</h3>
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Building className="w-4 h-4 flex-shrink-0" />
-                              <p className="text-sm font-medium">{exp.empresa}</p>
+                  <div className="space-y-1">
+                    {experiencias.map((exp, index) => (
+                      <div key={exp.id} className="group relative">
+                        <div className="flex gap-6 pb-10">
+                          <div className="relative flex flex-col items-center">
+                            <div
+                              className={`z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 ${
+                                !exp.fecha_final
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-background text-muted-foreground"
+                              }`}
+                            >
+                              <Briefcase className="h-5 w-5" />
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              {exp.ubicacion && (
-                                <>
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {exp.ubicacion}
-                                  </div>
-                                  <span className="hidden sm:inline">•</span>
-                                </>
-                              )}
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {formatDate(exp.fecha_comienzo)} - {exp.fecha_final ? formatDate(exp.fecha_final) : 'Presente'}
-                              </div>
-                            </div>
-                            {exp.descripcion && (
-                              <p className="text-sm mt-2">{exp.descripcion}</p>
+                            {index < experiencias.length - 1 && (
+                              <div className="absolute top-11 h-full w-px bg-border"></div>
                             )}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteExperiencia(exp.id)}
-                            disabled={loadingAction}
-                            className="text-destructive hover:text-destructive flex-shrink-0"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+
+                          <div className="flex-1 space-y-3 pt-0.5">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0 flex-1 space-y-1">
+                                <h3 className="font-bold text-lg leading-tight text-foreground">{exp.titulo}</h3>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-1.5 font-medium">
+                                    <Building2 className="h-4 w-4" />
+                                    <span>{exp.empresa}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>
+                                      {formatDate(exp.fecha_comienzo)} - {exp.fecha_final ? formatDate(exp.fecha_final) : 'Actual'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              {!exp.fecha_final && (
+                                <Badge className="shrink-0 bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                  Actual
+                                </Badge>
+                              )}
+                            </div>
+
+                            {exp.descripcion && (
+                              <p className="text-sm leading-relaxed text-muted-foreground">{exp.descripcion}</p>
+                            )}
+                            <div className="flex items-center gap-2 pt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteExperiencia(exp.id)}
+                                className="h-8 gap-1.5 text-xs text-destructive opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Eliminar
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
