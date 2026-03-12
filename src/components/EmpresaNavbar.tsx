@@ -65,7 +65,7 @@ export function EmpresaNavbar() {
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/dashboard-reclutador">
                   <Users className="h-4 w-4 mr-2" />
-                  Mis Postulaciones
+                  Mis Vacantes
                 </Link>
               </Button>
             )}

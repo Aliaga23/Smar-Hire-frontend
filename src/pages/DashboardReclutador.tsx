@@ -126,7 +126,7 @@ export default function DashboardReclutador() {
             <div>
               <h1 className="text-4xl font-bold tracking-tight">Dashboard de Reclutamiento</h1>
               <p className="text-muted-foreground mt-2">
-                Gestiona tus vacantes, postulaciones y compatibilidad con IA
+                Gestiona tus vacantes y revisa candidatos con compatibilidad IA
               </p>
             </div>
             <Button onClick={() => navigate('/vacante/crear')} size="lg" className="gap-2">
@@ -178,7 +178,7 @@ export default function DashboardReclutador() {
             <CardHeader>
               <CardTitle>Vacantes Publicadas</CardTitle>
               <CardDescription>
-                Gestiona tus ofertas, revisa candidatos y calcula compatibilidad con IA
+                Revisa candidatos y calcula compatibilidad con IA
               </CardDescription>
             </CardHeader>
             <CardContent>

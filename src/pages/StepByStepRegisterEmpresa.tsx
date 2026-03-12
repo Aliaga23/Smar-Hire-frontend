@@ -189,6 +189,8 @@ export default function StepByStepRegisterEmpresa() {
       localStorage.setItem('token', result.token)
       localStorage.setItem('user', JSON.stringify(result.usuario))
       localStorage.setItem('userType', result.tipoUsuario)
+      localStorage.setItem('userRole', 'admin-empresa')
+      localStorage.setItem('isAdmin', 'true')
       
       localStorage.removeItem('empresaStepData')
       localStorage.removeItem('oauthToken') // Limpiar token temporal de OAuth
