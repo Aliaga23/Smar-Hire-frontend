@@ -1,5 +1,5 @@
 import { Building2, User, LogOut, Settings, Briefcase, Users } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -15,12 +15,11 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { useCurrentUser } from "@/utils/auth"
 
 export function EmpresaNavbar() {
-  const navigate = useNavigate()
   const { user, empresaData, isEmpresaAdmin, logout } = useCurrentUser()
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    window.location.href = '/login'
   }
 
   const initials = user?.name && user?.lastname

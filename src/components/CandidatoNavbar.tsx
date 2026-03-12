@@ -17,11 +17,12 @@ import { useProfile } from "@/contexts/ProfileContext"
 export function CandidatoNavbar() {
   const navigate = useNavigate()
   const { user, logout } = useCurrentUser()
+
   const { fotoPerfil } = useProfile()
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    window.location.href = '/login'
   }
 
   const initials = user?.name && user?.lastname 
