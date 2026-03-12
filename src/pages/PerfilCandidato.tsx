@@ -77,14 +77,6 @@ export default function PerfilCandidato() {
   const [candidato, setCandidato] = useState<CandidatoPublico | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-
-  if (!isReclutador) {
-    return <Navigate to="/dashboard-candidato" replace />
-  }
-
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return
@@ -103,6 +95,14 @@ export default function PerfilCandidato() {
 
     fetchData()
   }, [id])
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!isReclutador) {
+    return <Navigate to="/dashboard-candidato" replace />
+  }
 
   const formatearFecha = useCallback((fecha?: string) => {
     if (!fecha) return 'Presente'

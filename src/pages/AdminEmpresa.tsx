@@ -30,7 +30,7 @@ import {
 } from "lucide-react"
 import { getReclutadores } from "@/services/empresa"
 import { getVacantes, type Vacante } from "@/services/vacante"
-import { getPostulacionesByVacante, type Postulacion } from "@/services/postulacion"
+import { getPostulacionesByEmpresaVacante, type Postulacion } from "@/services/postulacion"
 
 interface Reclutador {
   id: string
@@ -133,7 +133,7 @@ export default function AdminEmpresa() {
   const loadPostulaciones = async (vacanteId: string, page: number) => {
     try {
       setLoadingPostulaciones(true)
-      const res = await getPostulacionesByVacante(vacanteId, page, 10)
+      const res = await getPostulacionesByEmpresaVacante(vacanteId, page, 10)
       setPostulaciones(res.data)
       setTotalPages(res.pagination.totalPages)
       setTotalPostulaciones(res.pagination.total)

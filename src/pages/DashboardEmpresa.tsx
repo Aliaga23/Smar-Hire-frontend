@@ -68,18 +68,6 @@ export default function DashboardEmpresa() {
     fetchData()
   }, [empresaId])
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-
-  if (!isReclutador) {
-    return <Navigate to="/dashboard-candidato" replace />
-  }
-
-  if (!isEmpresaAdmin) {
-    return <Navigate to="/dashboard-reclutador" replace />
-  }
-
   // Formatear fecha
   const formatearFecha = useCallback((fecha: string) => {
     const ahora = new Date()
@@ -100,6 +88,18 @@ export default function DashboardEmpresa() {
     if (min) return `Desde $${min.toLocaleString()}`
     return `Hasta $${max?.toLocaleString()}`
   }, [])
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!isReclutador) {
+    return <Navigate to="/dashboard-candidato" replace />
+  }
+
+  if (!isEmpresaAdmin) {
+    return <Navigate to="/dashboard-reclutador" replace />
+  }
 
   return (
     <div className="min-h-screen bg-background">

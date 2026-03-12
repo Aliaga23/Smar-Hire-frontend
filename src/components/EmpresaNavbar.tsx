@@ -19,7 +19,6 @@ export function EmpresaNavbar() {
 
   const handleLogout = () => {
     logout()
-    window.location.href = '/login'
   }
 
   const initials = user?.name && user?.lastname

@@ -122,10 +122,18 @@ export const getMisPostulaciones = async (page: number = 1, limit: number = 10):
   return response.data
 }
 
-// Ver postulaciones de una vacante (solo reclutadores)
+// Ver postulaciones de una vacante (solo reclutadores - filtra por reclutadorId)
 export const getPostulacionesByVacante = async (vacanteId: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<Postulacion>> => {
   const response = await api.get(`/postulaciones/vacante/${vacanteId}`, {
     params: { page, limit }
+  })
+  return response.data
+}
+
+// Ver postulaciones de una vacante por empresa (admin - filtra por empresaId, sin restricción de reclutador)
+export const getPostulacionesByEmpresaVacante = async (vacanteId: string, page: number = 1, limit: number = 10): Promise<PaginatedResponse<Postulacion>> => {
+  const response = await api.get(`/postulaciones/empresa/candidatos`, {
+    params: { vacanteId, page, limit }
   })
   return response.data
 }

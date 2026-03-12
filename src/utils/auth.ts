@@ -1,4 +1,5 @@
 // Utilidades para manejo de autenticación y roles
+import { useState, useEffect } from 'react'
 
 export interface UserData {
   id: string
@@ -78,26 +79,42 @@ export const logout = () => {
   localStorage.removeItem('isAdmin')
 }
 
+const readAuthState = () => ({
+  user: getUserData(),
+  userType: getUserType(),
+  userRole: getUserRole(),
+  isAdmin: isAdmin(),
+  isAuthenticated: isAuthenticated(),
+  isCandidato: isCandidato(),
+  isReclutador: isReclutador(),
+  isEmpresaAdmin: isEmpresaAdmin(),
+  empresaId: getEmpresaId(),
+  empresaData: getEmpresaData(),
+  token: getToken(),
+})
+
 // Hook para obtener información del usuario actual
 export const useCurrentUser = () => {
-  const userData = getUserData()
-  const userType = getUserType()
-  const userRole = getUserRole()
-  const isAdminUser = isAdmin()
-  const token = getToken()
-  
+  const [authState, setAuthState] = useState(readAuthState)
+
+  useEffect(() => {
+    const handleStorage = () => setAuthState(readAuthState())
+    window.addEventListener('storage', handleStorage)
+    window.addEventListener('auth-change', handleStorage)
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      window.removeEventListener('auth-change', handleStorage)
+    }
+  }, [])
+
+  const handleLogout = () => {
+    logout()
+    setAuthState(readAuthState())
+    window.dispatchEvent(new Event('auth-change'))
+  }
+
   return {
-    user: userData,
-    userType,
-    userRole,
-    isAdmin: isAdminUser,
-    isAuthenticated: isAuthenticated(),
-    isCandidato: isCandidato(),
-    isReclutador: isReclutador(),
-    isEmpresaAdmin: isEmpresaAdmin(),
-    empresaId: getEmpresaId(),
-    empresaData: getEmpresaData(),
-    token,
-    logout
+    ...authState,
+    logout: handleLogout,
   }
 }

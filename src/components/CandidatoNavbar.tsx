@@ -22,7 +22,6 @@ export function CandidatoNavbar() {
 
   const handleLogout = () => {
     logout()
-    window.location.href = '/login'
   }
 
   const initials = user?.name && user?.lastname 

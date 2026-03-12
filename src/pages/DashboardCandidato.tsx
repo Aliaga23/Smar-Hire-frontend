@@ -165,6 +165,12 @@ export default function DashboardCandidato() {
   })
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
 
+  useEffect(() => {
+    if (isAuthenticated && isCandidato) {
+      fetchAllData()
+    }
+  }, [isAuthenticated, isCandidato])
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
@@ -172,10 +178,6 @@ export default function DashboardCandidato() {
   if (!isCandidato) {
     return <Navigate to="/dashboard-empresa" replace />
   }
-
-  useEffect(() => {
-    fetchAllData()
-  }, [])
 
   const fetchAllData = async () => {
     setLoading(true)

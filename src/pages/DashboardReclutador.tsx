@@ -30,7 +30,7 @@ import { getVacantes, deleteVacante, updateEstadoVacante, type Vacante } from "@
 import { toast } from "sonner"
 
 export default function DashboardReclutador() {
-  const { isAuthenticated, isReclutador, empresaId, user } = useCurrentUser()
+  const { isAuthenticated, isReclutador, isEmpresaAdmin, empresaId, user } = useCurrentUser()
   const navigate = useNavigate()
   const [vacantes, setVacantes] = useState<Vacante[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -59,14 +59,6 @@ export default function DashboardReclutador() {
     fetchVacantes()
   }, [empresaId, reclutadorId])
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-
-  if (!isReclutador) {
-    return <Navigate to="/dashboard-candidato" replace />
-  }
-
   const stats = useMemo(() => ({
     vacantesActivas: vacantes.filter(v => v.estado === 'ABIERTA').length,
     totalVacantes: vacantes.length,
@@ -89,6 +81,18 @@ export default function DashboardReclutador() {
     if (min) return `Desde $${min.toLocaleString()}`
     return `Hasta $${max?.toLocaleString()}`
   }, [])
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!isReclutador) {
+    return <Navigate to="/dashboard-candidato" replace />
+  }
+
+  if (isEmpresaAdmin) {
+    return <Navigate to="/dashboard-empresa" replace />
+  }
 
   const handleEliminarVacante = async (vacanteId: string) => {
     if (!window.confirm('¿Estás seguro de eliminar esta vacante?')) return

@@ -52,6 +52,12 @@ export default function PerfilReclutador() {
     posicion: ""
   })
 
+  useEffect(() => {
+    if (isAuthenticated && isReclutador) {
+      loadProfile()
+    }
+  }, [isAuthenticated, isReclutador])
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
@@ -59,10 +65,6 @@ export default function PerfilReclutador() {
   if (!isReclutador) {
     return <Navigate to="/dashboard-candidato" replace />
   }
-
-  useEffect(() => {
-    loadProfile()
-  }, [])
 
   const loadProfile = async () => {
     try {
