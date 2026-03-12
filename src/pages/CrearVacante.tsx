@@ -33,7 +33,9 @@ import {
   getModalidades, 
   getHorarios, 
   addHabilidadVacante, 
-  addLenguajeVacante
+  addLenguajeVacante,
+  removeHabilidadVacante,
+  removeLenguajeVacante
 } from "@/services/vacante"
 import { getHabilidades, type Habilidad } from "@/services/habilidad"
 import { getLenguajes, type Lenguaje } from "@/services/lenguaje"
@@ -110,14 +112,6 @@ export default function CrearVacante() {
   const [habilidadPopoverOpen, setHabilidadPopoverOpen] = useState(false)
   const [lenguajePopoverOpen, setLenguajePopoverOpen] = useState(false)
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-  
-  if (!isReclutador) {
-    return <Navigate to="/dashboard-candidato" replace />
-  }
-
   // Cargar catálogos
   useEffect(() => {
     loadCatalogos()
@@ -129,6 +123,14 @@ export default function CrearVacante() {
       loadVacante(id)
     }
   }, [isEditMode, id])
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  
+  if (!isReclutador) {
+    return <Navigate to="/dashboard-candidato" replace />
+  }
 
   const loadCatalogos = async () => {
     try {
@@ -164,6 +166,27 @@ export default function CrearVacante() {
         modalidadId: vacante.modalidadId,
         horarioId: vacante.horarioId,
       })
+
+      if (vacante.habilidadesVacante?.length) {
+        setHabilidadesSeleccionadas(
+          vacante.habilidadesVacante.map((h: any) => ({
+            habilidadId: h.habilidadId,
+            habilidad: h.habilidad,
+            nivel: h.nivel,
+            requerido: h.requerido,
+          }))
+        )
+      }
+
+      if (vacante.lenguajesVacante?.length) {
+        setLenguajesSeleccionados(
+          vacante.lenguajesVacante.map((l: any) => ({
+            lenguajeId: l.lenguajeId,
+            lenguaje: l.lenguaje,
+            nivel: l.nivel,
+          }))
+        )
+      }
     } catch (error) {
       toast.error("Error al cargar la vacante")
       navigate("/dashboard-empresa")
@@ -275,6 +298,14 @@ export default function CrearVacante() {
         const { empresaId, ...updateData } = vacanteData
         await updateVacante(id, updateData)
         vacanteId = id
+
+        // Eliminar habilidades y lenguajes existentes antes de re-agregar
+        const vacanteActual = await getVacante(vacanteId)
+        const habsExistentes = vacanteActual.habilidadesVacante || []
+        const lensExistentes = vacanteActual.lenguajesVacante || []
+        await Promise.all(habsExistentes.map((h: any) => removeHabilidadVacante(vacanteId, h.habilidadId)))
+        await Promise.all(lensExistentes.map((l: any) => removeLenguajeVacante(vacanteId, l.lenguajeId)))
+
         toast.success("Vacante actualizada correctamente")
       } else {
         // Crear nueva vacante
@@ -531,7 +562,14 @@ export default function CrearVacante() {
                       max="10"
                       placeholder="Nivel"
                       value={nuevaHabilidad.nivel}
-                      onChange={(e) => setNuevaHabilidad({ ...nuevaHabilidad, nivel: parseInt(e.target.value) || 1 })}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setNuevaHabilidad({ ...nuevaHabilidad, nivel: val === '' ? '' as any : parseInt(val) })
+                      }}
+                      onBlur={(e) => {
+                        const val = Math.min(10, Math.max(1, parseInt(e.target.value) || 1))
+                        setNuevaHabilidad({ ...nuevaHabilidad, nivel: val })
+                      }}
                       className="mt-2"
                       disabled={loadingCatalogos}
                     />
@@ -666,7 +704,14 @@ export default function CrearVacante() {
                       max="10"
                       placeholder="Nivel"
                       value={nuevoLenguaje.nivel}
-                      onChange={(e) => setNuevoLenguaje({ ...nuevoLenguaje, nivel: parseInt(e.target.value) || 1 })}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setNuevoLenguaje({ ...nuevoLenguaje, nivel: val === '' ? '' as any : parseInt(val) })
+                      }}
+                      onBlur={(e) => {
+                        const val = Math.min(10, Math.max(1, parseInt(e.target.value) || 1))
+                        setNuevoLenguaje({ ...nuevoLenguaje, nivel: val })
+                      }}
                       className="mt-2"
                       disabled={loadingCatalogos}
                     />

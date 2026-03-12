@@ -28,7 +28,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react"
-import { getReclutadores } from "@/services/empresa"
+import { getReclutadores, toggleReclutadorEstado } from "@/services/empresa"
 import { getVacantes, type Vacante } from "@/services/vacante"
 import { getPostulacionesByEmpresaVacante, type Postulacion } from "@/services/postulacion"
 
@@ -165,6 +165,18 @@ export default function AdminEmpresa() {
       toast.error(error.response?.data?.message || "Error al enviar la invitación")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleToggleEstado = async (reclutadorId: string) => {
+    try {
+      await toggleReclutadorEstado(reclutadorId)
+      setReclutadores(prev => prev.map(r =>
+        r.id === reclutadorId ? { ...r, activo: !r.activo } : r
+      ))
+      toast.success("Estado del reclutador actualizado")
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Error al actualizar el estado")
     }
   }
 
@@ -362,9 +374,14 @@ export default function AdminEmpresa() {
                               <Briefcase className="h-3 w-3 mr-1" />
                               {rec._count?.vacantes || 0}
                             </Badge>
-                            <span className={`text-xs font-medium ${rec.activo ? 'text-green-600' : 'text-muted-foreground'}`}>
+                            <Button
+                              variant={rec.activo ? "default" : "outline"}
+                              size="sm"
+                              className={`text-xs h-7 px-3 ${rec.activo ? 'bg-green-600 hover:bg-green-700' : 'text-muted-foreground hover:text-foreground'}`}
+                              onClick={() => handleToggleEstado(rec.id)}
+                            >
                               {rec.activo ? 'Activo' : 'Inactivo'}
-                            </span>
+                            </Button>
                           </div>
                         </div>
                       ))}

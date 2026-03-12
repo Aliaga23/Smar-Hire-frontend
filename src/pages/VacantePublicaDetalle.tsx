@@ -1,94 +1,55 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { useCurrentUser } from "@/utils/auth"
-import { CandidatoNavbar } from "@/components/CandidatoNavbar"
+import { LandingNavbar } from "@/components/LandingNavbar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
-import { 
-  ChevronLeft, 
-  Briefcase, 
-  MapPin, 
-  DollarSign, 
-  Clock, 
+import {
+  ChevronLeft,
+  Briefcase,
+  MapPin,
+  DollarSign,
+  Clock,
   Building2,
   Calendar,
-  CheckCircle2,
-  Loader2,
-  Users,
   Send,
   Globe,
-  TrendingUp
+  TrendingUp,
+  Users,
+  LogIn,
 } from "lucide-react"
 import { getVacante, type Vacante } from "@/services/vacante"
-import { createPostulacion, getMisPostulaciones, type Postulacion } from "@/services/postulacion"
 import { toast } from "sonner"
 
-export default function VacanteDetalleCandidato() {
+export default function VacantePublicaDetalle() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { isAuthenticated } = useCurrentUser()
   const [vacante, setVacante] = useState<Vacante | null>(null)
-  const [misPostulaciones, setMisPostulaciones] = useState<Postulacion[]>([])
   const [loading, setLoading] = useState(true)
-  const [postulando, setPostulando] = useState(false)
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchData()
+    const fetchVacante = async () => {
+      if (!id) return
+      try {
+        setLoading(true)
+        const data = await getVacante(id)
+        setVacante(data)
+      } catch (error) {
+        console.error("Error al cargar vacante:", error)
+        toast.error("Error al cargar la vacante")
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [id, isAuthenticated])
-
-  const fetchData = async () => {
-    if (!id) return
-
-    try {
-      setLoading(true)
-      const [vacanteData, postulacionesRes] = await Promise.all([
-        getVacante(id),
-        getMisPostulaciones(1, 100)
-      ])
-      
-      setVacante(vacanteData)
-      setMisPostulaciones(postulacionesRes.data || [])
-    } catch (error) {
-      console.error("Error al cargar datos:", error)
-      toast.error("Error al cargar la vacante")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handlePostular = async () => {
-    if (!id) return
-
-    try {
-      setPostulando(true)
-      await createPostulacion({ vacanteId: id })
-      toast.success("¡Postulación enviada con éxito!")
-      
-      // Recargar postulaciones
-      const postulacionesRes = await getMisPostulaciones(1, 100)
-      setMisPostulaciones(postulacionesRes.data || [])
-    } catch (error: any) {
-      console.error("Error al postular:", error)
-      const mensaje = error.response?.data?.message || "Error al enviar la postulación"
-      toast.error(mensaje)
-    } finally {
-      setPostulando(false)
-    }
-  }
-
-  const yaPostulado = () => {
-    return misPostulaciones.some(p => p.vacanteId === id)
-  }
+    fetchVacante()
+  }, [id])
 
   if (loading) {
     return (
       <>
-        <CandidatoNavbar />
+        <LandingNavbar />
         <main className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4 py-8 max-w-5xl">
             <Skeleton className="h-8 w-32 mb-8" />
@@ -97,7 +58,6 @@ export default function VacanteDetalleCandidato() {
               <div className="grid lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   <Skeleton className="h-48 w-full rounded-xl" />
-                  <Skeleton className="h-32 w-full rounded-xl" />
                 </div>
                 <div className="space-y-4">
                   <Skeleton className="h-48 w-full rounded-xl" />
@@ -113,7 +73,7 @@ export default function VacanteDetalleCandidato() {
   if (!vacante) {
     return (
       <>
-        <CandidatoNavbar />
+        <LandingNavbar />
         <main className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4 py-16 max-w-lg">
             <Card className="border-none shadow-lg">
@@ -124,11 +84,11 @@ export default function VacanteDetalleCandidato() {
                   </div>
                   <h3 className="text-2xl font-bold mb-3">Vacante no encontrada</h3>
                   <p className="text-muted-foreground mb-8">
-                    La vacante que buscas no existe o ha sido eliminada por el reclutador.
+                    La vacante que buscas no existe o ha sido eliminada.
                   </p>
-                  <Button onClick={() => navigate("/vacantes-disponibles")} size="lg">
+                  <Button onClick={() => navigate("/vacantes")} size="lg">
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Explorar Vacantes
+                    Ver vacantes
                   </Button>
                 </div>
               </CardContent>
@@ -139,35 +99,32 @@ export default function VacanteDetalleCandidato() {
     )
   }
 
-  const postulado = yaPostulado()
   const diasPublicado = Math.floor((Date.now() - new Date(vacante.creado_en).getTime()) / (1000 * 60 * 60 * 24))
 
   return (
     <>
-      <CandidatoNavbar />
+      <LandingNavbar />
       <main className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
         <div className="container mx-auto px-4 py-8 max-w-5xl">
-          {/* Navigation */}
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/vacantes-disponibles")}
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/vacantes")}
             className="mb-6 -ml-3 text-muted-foreground hover:text-foreground gap-1"
           >
             <ChevronLeft className="h-4 w-4" />
             Volver a vacantes
           </Button>
 
-          {/* Hero Section */}
+          {/* Hero */}
           <Card className="border-none shadow-lg mb-8 overflow-hidden">
             <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 sm:p-10">
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                {/* Left: Title & Company */}
                 <div className="flex-1 space-y-4">
                   <div className="flex items-center gap-3">
-                    <Badge 
+                    <Badge
                       className={`${
-                        vacante.estado === "ABIERTA" 
-                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" 
+                        vacante.estado === "ABIERTA"
+                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                           : "bg-muted text-muted-foreground"
                       }`}
                     >
@@ -182,7 +139,7 @@ export default function VacanteDetalleCandidato() {
                     )}
                   </div>
 
-                  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+                  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
                     {vacante.titulo}
                   </h1>
 
@@ -191,14 +148,13 @@ export default function VacanteDetalleCandidato() {
                       <Building2 className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{vacante.empresa?.name}</p>
+                      <p className="font-semibold">{vacante.empresa?.name}</p>
                       {vacante.empresa?.area && (
                         <p className="text-sm text-muted-foreground">{vacante.empresa.area}</p>
                       )}
                     </div>
                   </div>
 
-                  {/* Meta Info */}
                   <div className="flex flex-wrap items-center gap-4 pt-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Users className="h-4 w-4" />
@@ -209,9 +165,9 @@ export default function VacanteDetalleCandidato() {
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
                       <span>
-                        {diasPublicado === 0 
-                          ? "Publicado hoy" 
-                          : diasPublicado === 1 
+                        {diasPublicado === 0
+                          ? "Publicado hoy"
+                          : diasPublicado === 1
                             ? "Publicado ayer"
                             : `Hace ${diasPublicado} días`}
                       </span>
@@ -219,12 +175,11 @@ export default function VacanteDetalleCandidato() {
                   </div>
                 </div>
 
-                {/* Right: Quick Apply */}
                 <div className="lg:text-right space-y-4">
                   {(vacante.salario_minimo || vacante.salario_maximo) && (
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Salario</p>
-                      <p className="text-2xl font-bold text-foreground">
+                      <p className="text-2xl font-bold">
                         {vacante.salario_minimo && vacante.salario_maximo
                           ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
                           : vacante.salario_minimo
@@ -233,39 +188,19 @@ export default function VacanteDetalleCandidato() {
                       </p>
                     </div>
                   )}
-
-                  <div className="flex lg:justify-end gap-2">
-                    {postulado ? (
-                      <Button variant="secondary" size="lg" disabled className="gap-2">
-                        <CheckCircle2 className="h-5 w-5" />
-                        Ya Postulado
-                      </Button>
-                    ) : (
-                      <Button 
-                        size="lg"
-                        onClick={handlePostular}
-                        disabled={postulando || vacante.estado !== "ABIERTA"}
-                        className="gap-2 shadow-lg"
-                      >
-                        {postulando ? (
-                          <>
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            Enviando...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-5 w-5" />
-                            Postularme
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/login")}
+                    disabled={vacante.estado !== "ABIERTA"}
+                    className="gap-2 shadow-lg"
+                  >
+                    <Send className="h-5 w-5" />
+                    Postularme
+                  </Button>
                 </div>
               </div>
             </div>
 
-            {/* Info Pills */}
             <div className="px-8 sm:px-10 py-6 border-t bg-card/50">
               <div className="flex flex-wrap gap-3">
                 {vacante.modalidad && (
@@ -298,9 +233,7 @@ export default function VacanteDetalleCandidato() {
 
           {/* Content Grid */}
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Description */}
               <Card className="border-none shadow-md">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -309,15 +242,12 @@ export default function VacanteDetalleCandidato() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {vacante.descripcion}
-                    </p>
-                  </div>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {vacante.descripcion}
+                  </p>
                 </CardContent>
               </Card>
 
-              {/* Company Info */}
               {vacante.empresa && (
                 <Card className="border-none shadow-md">
                   <CardHeader className="pb-4">
@@ -333,7 +263,7 @@ export default function VacanteDetalleCandidato() {
                       </div>
                       <div className="flex-1 space-y-3">
                         <div>
-                          <h3 className="font-semibold text-lg text-foreground">{vacante.empresa.name}</h3>
+                          <h3 className="font-semibold text-lg">{vacante.empresa.name}</h3>
                           {vacante.empresa.area && (
                             <Badge variant="secondary" className="mt-1 gap-1">
                               <Globe className="h-3 w-3" />
@@ -351,66 +281,33 @@ export default function VacanteDetalleCandidato() {
                   </CardContent>
                 </Card>
               )}
-
-              {/* Already Applied */}
-              {postulado && (
-                <Card className="border-emerald-500/30 bg-emerald-500/5 shadow-md">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="h-12 w-12 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">
-                          ¡Tu postulación fue enviada!
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          El equipo de {vacante.empresa?.name || "la empresa"} revisará tu perfil. 
-                          Te notificaremos cuando haya novedades sobre tu postulación.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Quick Actions */}
               <Card className="border-none shadow-md sticky top-24">
                 <CardContent className="p-6 space-y-6">
-                  {/* Apply Button */}
                   <div className="space-y-3">
-                    {postulado ? (
-                      <Button variant="secondary" className="w-full h-12" disabled>
-                        <CheckCircle2 className="h-5 w-5 mr-2" />
-                        Ya Postulado
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full h-12 shadow-md"
-                        onClick={handlePostular}
-                        disabled={postulando || vacante.estado !== "ABIERTA"}
-                      >
-                        {postulando ? (
-                          <>
-                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                            Enviando...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-5 w-5 mr-2" />
-                            Postularme Ahora
-                          </>
-                        )}
-                      </Button>
-                    )}
+                    <Button
+                      className="w-full h-12 shadow-md gap-2"
+                      onClick={() => navigate("/login")}
+                      disabled={vacante.estado !== "ABIERTA"}
+                    >
+                      <Send className="h-5 w-5" />
+                      Postularme Ahora
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      onClick={() => navigate("/login")}
+                    >
+                      <LogIn className="h-4 w-4" />
+                      Iniciar sesión
+                    </Button>
                   </div>
 
                   <Separator />
 
-                  {/* Job Details */}
                   <div className="space-y-4">
                     <h4 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
                       Detalles del Empleo
@@ -421,18 +318,14 @@ export default function VacanteDetalleCandidato() {
                           <Clock className="h-4 w-4" />
                           <span className="text-sm">Jornada</span>
                         </div>
-                        <span className="text-sm font-medium text-foreground">
-                          {vacante.horario?.nombre || "No especificado"}
-                        </span>
+                        <span className="text-sm font-medium">{vacante.horario?.nombre || "No especificado"}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           <span className="text-sm">Modalidad</span>
                         </div>
-                        <span className="text-sm font-medium text-foreground">
-                          {vacante.modalidad?.nombre || "No especificado"}
-                        </span>
+                        <span className="text-sm font-medium">{vacante.modalidad?.nombre || "No especificado"}</span>
                       </div>
                       {(vacante.salario_minimo || vacante.salario_maximo) && (
                         <div className="flex items-center justify-between">
@@ -440,7 +333,7 @@ export default function VacanteDetalleCandidato() {
                             <DollarSign className="h-4 w-4" />
                             <span className="text-sm">Salario</span>
                           </div>
-                          <span className="text-sm font-medium text-foreground">
+                          <span className="text-sm font-medium">
                             {vacante.salario_minimo && vacante.salario_maximo
                               ? `$${vacante.salario_minimo.toLocaleString()} - $${vacante.salario_maximo.toLocaleString()}`
                               : vacante.salario_minimo
@@ -454,9 +347,7 @@ export default function VacanteDetalleCandidato() {
                           <Users className="h-4 w-4" />
                           <span className="text-sm">Postulantes</span>
                         </div>
-                        <span className="text-sm font-medium text-foreground">
-                          {vacante._count?.postulaciones || 0}
-                        </span>
+                        <span className="text-sm font-medium">{vacante._count?.postulaciones || 0}</span>
                       </div>
                     </div>
                   </div>

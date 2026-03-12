@@ -31,6 +31,7 @@ import StepByStepRegister from "@/pages/StepByStepRegister"
 import StepByStepRegisterEmpresa from "@/pages/StepByStepRegisterEmpresa"
 import AnalyticsEmpresa from "@/pages/AnalyticsEmpresa"
 import AdminEmpresa from "@/pages/AdminEmpresa"
+import VacantePublicaDetalle from "@/pages/VacantePublicaDetalle"
 import './App.css'
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
             <Route path="/how-it-works" element={<><LandingNavbar /><HowItWorksPage /></>} />
             <Route path="/contact" element={<><LandingNavbar /><ContactPage /></>} />
             <Route path="/vacantes" element={<VacantesPublicas />} />
+            <Route path="/vacantes/:id" element={<VacantePublicaDetalle />} />
             <Route path="/login" element={<><LandingNavbar /><LoginPage /></>} />
             <Route path="/forgot-password" element={<><LandingNavbar /><ForgotPassword /></>} />
             <Route path="/reset-password" element={<><LandingNavbar /><ResetPassword /></>} />

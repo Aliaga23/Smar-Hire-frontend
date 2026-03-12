@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams, Navigate, useNavigate } from "react-router-dom"
 import { useCurrentUser } from "../utils/auth"
 import { getVacante, type Vacante } from "@/services/vacante"
-import { getPostulacionesByVacante, type Postulacion } from "@/services/postulacion"
+import { getPostulacionesByVacante, getPostulacionesByEmpresaVacante, type Postulacion } from "@/services/postulacion"
 import api from "@/lib/axios"
 import { toast } from "sonner"
 import { EmpresaNavbar } from "@/components/EmpresaNavbar"
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   ArrowLeft, 
   Briefcase, 
@@ -26,7 +26,11 @@ import {
   Sparkles
 } from "lucide-react"
 
-export default function VacanteDetalle() {
+interface Props {
+  isAdmin?: boolean
+}
+
+export default function VacanteDetalle({ isAdmin = false }: Props) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { isAuthenticated, isReclutador, isEmpresaAdmin } = useCurrentUser()
@@ -65,7 +69,9 @@ export default function VacanteDetalle() {
 
       try {
         setLoadingPostulaciones(true)
-        const postulacionesResponse = await getPostulacionesByVacante(id, currentPage, 10)
+        const postulacionesResponse = isAdmin
+          ? await getPostulacionesByEmpresaVacante(id, currentPage, 10)
+          : await getPostulacionesByVacante(id, currentPage, 10)
         setPostulaciones(postulacionesResponse.data)
         setTotalPages(postulacionesResponse.pagination.totalPages)
         setTotalPostulaciones(postulacionesResponse.pagination.total)
@@ -78,7 +84,7 @@ export default function VacanteDetalle() {
     }
 
     fetchPostulaciones()
-  }, [id, currentPage])
+  }, [id, currentPage, isAdmin])
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -185,7 +191,7 @@ export default function VacanteDetalle() {
             )}
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            {!isLoading && totalPostulaciones > 0 && (
+            {!isAdmin && !isLoading && totalPostulaciones > 0 && (
               <Button
                 onClick={procesarMatching}
                 disabled={isProcessingMatching}
@@ -443,6 +449,9 @@ export default function VacanteDetalle() {
       {/* Modal de procesamiento de matching */}
       <Dialog open={showMatchingModal} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-md" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Calculando compatibilidad</DialogTitle>
+          </DialogHeader>
           <div className="flex flex-col items-center justify-center py-8 space-y-6">
             <div className="relative">
               <div className="absolute inset-0 animate-ping">

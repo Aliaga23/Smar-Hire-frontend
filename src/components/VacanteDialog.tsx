@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { toast } from "sonner"
 import { X, Plus, Award, Languages, Loader2, Check, ChevronsUpDown } from "lucide-react"
-import { createVacante, updateVacante, getModalidades, getHorarios, addHabilidadVacante, addLenguajeVacante, type Vacante } from "@/services/vacante"
+import { createVacante, updateVacante, getModalidades, getHorarios, addHabilidadVacante, addLenguajeVacante, removeHabilidadVacante, removeLenguajeVacante, getVacante, type Vacante } from "@/services/vacante"
 import { getHabilidades, type Habilidad } from "@/services/habilidad"
 import { getLenguajes, type Lenguaje } from "@/services/lenguaje"
 import { cn } from "@/lib/utils"
@@ -238,6 +238,14 @@ export function VacanteDialog({ open, onOpenChange, vacanteToEdit, empresaId, on
         const { empresaId, ...updateData } = vacanteData
         await updateVacante(vacanteToEdit.id, updateData)
         vacanteId = vacanteToEdit.id
+
+        // Eliminar habilidades y lenguajes existentes antes de re-agregar
+        const vacanteActual = await getVacante(vacanteId)
+        const habsExistentes = vacanteActual.habilidadesVacante || []
+        const lensExistentes = vacanteActual.lenguajesVacante || []
+        await Promise.all(habsExistentes.map((h: any) => removeHabilidadVacante(vacanteId, h.habilidadId)))
+        await Promise.all(lensExistentes.map((l: any) => removeLenguajeVacante(vacanteId, l.lenguajeId)))
+
         toast.success("Vacante actualizada correctamente")
       } else {
         // Crear nueva vacante
@@ -465,9 +473,16 @@ export function VacanteDialog({ open, onOpenChange, vacanteToEdit, empresaId, on
                         type="number"
                         min="0"
                         max="10"
-                        placeholder="Nivel (0-10)"
+                        placeholder="Nivel (1-10)"
                         value={nuevaHabilidad.nivel}
-                        onChange={(e) => setNuevaHabilidad({ ...nuevaHabilidad, nivel: parseInt(e.target.value) || 0 })}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          setNuevaHabilidad({ ...nuevaHabilidad, nivel: val === '' ? '' as any : parseInt(val) })
+                        }}
+                        onBlur={(e) => {
+                          const val = Math.min(10, Math.max(1, parseInt(e.target.value) || 1))
+                          setNuevaHabilidad({ ...nuevaHabilidad, nivel: val })
+                        }}
                       />
                     </div>
                     <div className="col-span-3">
@@ -587,9 +602,16 @@ export function VacanteDialog({ open, onOpenChange, vacanteToEdit, empresaId, on
                         type="number"
                         min="0"
                         max="10"
-                        placeholder="Nivel (0-10)"
+                        placeholder="Nivel (1-10)"
                         value={nuevoLenguaje.nivel}
-                        onChange={(e) => setNuevoLenguaje({ ...nuevoLenguaje, nivel: parseInt(e.target.value) || 0 })}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          setNuevoLenguaje({ ...nuevoLenguaje, nivel: val === '' ? '' as any : parseInt(val) })
+                        }}
+                        onBlur={(e) => {
+                          const val = Math.min(10, Math.max(1, parseInt(e.target.value) || 1))
+                          setNuevoLenguaje({ ...nuevoLenguaje, nivel: val })
+                        }}
                       />
                     </div>
                     <Button
